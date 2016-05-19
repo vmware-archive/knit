@@ -85,9 +85,15 @@ var _ = Describe("Apply Patches", func() {
 	Context("error cases", func() {
 		Context("version branch already exists", func() {
 			BeforeEach(func() {
-				command := exec.Command("git", "checkout", "-b", "1.6.1")
+				command := exec.Command("git", "checkout", "v222")
 				command.Dir = releaseRepo
 				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(session, "10s").Should(gexec.Exit(0))
+
+				command = exec.Command("git", "checkout", "-b", "1.6.1")
+				command.Dir = releaseRepo
+				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(session, "10s").Should(gexec.Exit(0))
 			})
@@ -100,6 +106,12 @@ var _ = Describe("Apply Patches", func() {
 				Eventually(session, "10s").Should(gexec.Exit(0))
 
 				command = exec.Command("git", "branch", "-D", "1.6.1")
+				command.Dir = releaseRepo
+				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(session, "10s").Should(gexec.Exit(0))
+
+				command = exec.Command("git", "clean", "-ffd")
 				command.Dir = releaseRepo
 				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
