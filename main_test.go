@@ -54,7 +54,7 @@ var _ = Describe("Apply Patches", func() {
 				"-version", "1.6.15")
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "5m").Should(gexec.Exit(0))
+			Eventually(session, "10m").Should(gexec.Exit(0))
 
 			Eventually(session.Out).Should(gbytes.Say("Submodule path"))
 
