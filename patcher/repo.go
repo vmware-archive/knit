@@ -125,7 +125,7 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 		&exec.Cmd{Path: r.gitPath, Args: []string{"git", "submodule", "update", "--init", "--recursive", "--force"}, Dir: filepath.Join(r.repo, path)},
 		&exec.Cmd{Path: r.gitPath, Args: []string{"git", "clean", "-ffd"}, Dir: filepath.Join(r.repo, path)},
 		&exec.Cmd{Path: r.gitPath, Args: []string{"git", "add", "-A", path}, Dir: r.repo},
-		&exec.Cmd{Path: r.gitPath, Args: []string{"git", "commit", "-m", fmt.Sprintf("Knit bump of %s", path)}, Dir: r.repo},
+		&exec.Cmd{Path: r.gitPath, Args: []string{"git", "commit", "-m", fmt.Sprintf("Knit bump of %s", path), "--no-verify"}, Dir: r.repo},
 	}
 
 	for _, command := range commands {
@@ -161,7 +161,7 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 
 		commands := []*exec.Cmd{
 			&exec.Cmd{Path: r.gitPath, Args: []string{"git", "add", "-A", "."}, Dir: filepath.Join(r.repo, submodulePath)},
-			&exec.Cmd{Path: r.gitPath, Args: []string{"git", "commit", "-m", fmt.Sprintf("Knit submodule patch of %s", submodulePath)}, Dir: filepath.Join(r.repo, submodulePath)},
+			&exec.Cmd{Path: r.gitPath, Args: []string{"git", "commit", "-m", fmt.Sprintf("Knit submodule patch of %s", submodulePath), "--no-verify"}, Dir: filepath.Join(r.repo, submodulePath)},
 		}
 
 		for _, command := range commands {
@@ -178,7 +178,7 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 
 	commitCommands := []*exec.Cmd{
 		&exec.Cmd{Path: r.gitPath, Args: []string{"git", "add", "-A", "."}, Dir: r.repo},
-		&exec.Cmd{Path: r.gitPath, Args: []string{"git", "commit", "-m", fmt.Sprintf("Knit patch of %s", path)}, Dir: r.repo},
+		&exec.Cmd{Path: r.gitPath, Args: []string{"git", "commit", "-m", fmt.Sprintf("Knit patch of %s", path), "--no-verify"}, Dir: r.repo},
 	}
 
 	for _, command := range commitCommands {

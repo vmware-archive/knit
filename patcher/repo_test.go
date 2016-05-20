@@ -254,7 +254,7 @@ var _ = Describe("Repo", func() {
 				},
 				&exec.Cmd{
 					Path:   "/some/path/to/git",
-					Args:   []string{"git", "commit", "-m", "Knit bump of src/some/path"},
+					Args:   []string{"git", "commit", "-m", "Knit bump of src/some/path", "--no-verify"},
 					Dir:    repoPath,
 					Stderr: os.Stderr,
 					Stdout: os.Stdout,
@@ -303,7 +303,7 @@ var _ = Describe("Repo", func() {
 				},
 				&exec.Cmd{
 					Path:   "/some/path/to/git",
-					Args:   []string{"git", "commit", "-m", "Knit patch of src/different/path"},
+					Args:   []string{"git", "commit", "-m", "Knit patch of src/different/path", "--no-verify"},
 					Dir:    repoPath,
 					Stderr: os.Stderr,
 					Stdout: os.Stdout,
@@ -346,7 +346,7 @@ var _ = Describe("Repo", func() {
 					},
 					&exec.Cmd{
 						Path:   "/some/path/to/git",
-						Args:   []string{"git", "commit", "-m", "Knit submodule patch of src/some/crazy/submodule"},
+						Args:   []string{"git", "commit", "-m", "Knit submodule patch of src/some/crazy/submodule", "--no-verify"},
 						Dir:    filepath.Join(repoPath, "src/some/crazy/submodule"),
 						Stderr: os.Stderr,
 						Stdout: os.Stdout,
@@ -360,7 +360,7 @@ var _ = Describe("Repo", func() {
 					},
 					&exec.Cmd{
 						Path:   "/some/path/to/git",
-						Args:   []string{"git", "commit", "-m", "Knit patch of src/different/path"},
+						Args:   []string{"git", "commit", "-m", "Knit patch of src/different/path", "--no-verify"},
 						Dir:    repoPath,
 						Stderr: os.Stderr,
 						Stdout: os.Stdout,
