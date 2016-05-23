@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"os"
 	"os/exec"
 
 	"github.com/onsi/gomega/gbytes"
@@ -13,23 +12,6 @@ import (
 )
 
 var _ = Describe("Apply Patches", func() {
-	var (
-		releaseRepo string
-		patchesRepo string
-	)
-
-	BeforeEach(func() {
-		releaseRepo = os.Getenv("CF_RELEASE_DIR")
-		patchesRepo = os.Getenv("PCF_PATCHES_DIR")
-
-		if releaseRepo == "" {
-			Fail("CF_RELEASE_DIR is a required env var")
-		}
-
-		if patchesRepo == "" {
-			Fail("PCF_PATCHES_DIR is a required env var")
-		}
-	})
 
 	Context("when everything is great", func() {
 		AfterEach(func() {

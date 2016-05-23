@@ -42,7 +42,7 @@ func main() {
 	}
 
 	versionsParser := patcher.NewVersionsParser(version, patcher.NewPatchSet(patchesRepository))
-	runner := patcher.NewRunner()
+	runner := patcher.NewCommandRunner()
 	repo := patcher.NewRepo(runner, gitPath, releaseRepository, debug, "bot", "witchcraft@example.com")
 	apply := patcher.NewApply(repo)
 
