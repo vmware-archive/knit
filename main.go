@@ -38,12 +38,15 @@ func main() {
 
 	gitPath, err := exec.LookPath("git")
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	versionsParser := patcher.NewVersionsParser(version, patcher.NewPatchSet(patchesRepository))
-	runner := patcher.NewRunner()
-	repo := patcher.NewRepo(runner, gitPath, releaseRepository, debug, "bot", "witchcraft@example.com")
+	runner, err := patcher.NewCommandRunner(gitPath, debug)
+	if err != nil {
+		panic(err)
+	}
+	repo := patcher.NewRepo(runner, releaseRepository, "bot", "witchcraft@example.com")
 	apply := patcher.NewApply(repo)
 
 	initialCheckpoint, err := versionsParser.GetCheckpoint()
