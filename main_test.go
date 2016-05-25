@@ -141,7 +141,7 @@ var _ = Describe("Apply Patches", func() {
 				os.Setenv("PATH", "")
 			})
 
-			FIt("exists with exit status 1", func() {
+			It("exists with exit status 1", func() {
 				command := exec.Command(patcher,
 					"-repository-to-patch", releaseRepo,
 					"-patch-repository", patchesRepo,
