@@ -52,7 +52,7 @@ var _ = Describe("Repo", func() {
 
 		err = ioutil.WriteFile(repoSubmoduleFilepath, []byte(gitModulesContent), 0666)
 		Expect(err).NotTo(HaveOccurred())
-		r = patcher.NewRepo(runner, "/some/path/to/git", repoPath, true, "testbot", "foo@example.com")
+		r = patcher.NewRepo(runner, repoPath, "testbot", "foo@example.com")
 	})
 
 	AfterEach(func() {
@@ -67,18 +67,12 @@ var _ = Describe("Repo", func() {
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"config", "--global", "user.name", "testbot"},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"config", "--global", "user.name", "testbot"},
+					Dir:  repoPath,
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"config", "--global", "user.email", "foo@example.com"},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"config", "--global", "user.email", "foo@example.com"},
+					Dir:  repoPath,
 				},
 			}))
 		})
@@ -102,25 +96,16 @@ var _ = Describe("Repo", func() {
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"checkout", "some-ref"},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"checkout", "some-ref"},
+					Dir:  repoPath,
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"clean", "-ffd"},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"clean", "-ffd"},
+					Dir:  repoPath,
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"submodule", "update", "--init", "--recursive", "--force"},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
+					Dir:  repoPath,
 				},
 			}))
 		})
@@ -143,25 +128,16 @@ var _ = Describe("Repo", func() {
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"clean", "-ffd"},
-					Dir:        filepath.Join(repoPath, "src", "module-one"),
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"clean", "-ffd"},
+					Dir:  filepath.Join(repoPath, "src", "module-one"),
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"clean", "-ffd"},
-					Dir:        filepath.Join(repoPath, "src", "module-two"),
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"clean", "-ffd"},
+					Dir:  filepath.Join(repoPath, "src", "module-two"),
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"clean", "-ffd"},
-					Dir:        filepath.Join(repoPath, "src", "module-three"),
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"clean", "-ffd"},
+					Dir:  filepath.Join(repoPath, "src", "module-three"),
 				},
 			}))
 		})
@@ -197,11 +173,8 @@ var _ = Describe("Repo", func() {
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"am", "some-dir/something.patch"},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"am", "some-dir/something.patch"},
+					Dir:  repoPath,
 				},
 			}))
 		})
@@ -224,39 +197,24 @@ var _ = Describe("Repo", func() {
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"checkout", "a-sha"},
-					Dir:        filepath.Join(repoPath, "src", "some/path"),
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"checkout", "a-sha"},
+					Dir:  filepath.Join(repoPath, "src", "some/path"),
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"submodule", "update", "--init", "--recursive", "--force"},
-					Dir:        filepath.Join(repoPath, "src", "some/path"),
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
+					Dir:  filepath.Join(repoPath, "src", "some/path"),
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"clean", "-ffd"},
-					Dir:        filepath.Join(repoPath, "src", "some/path"),
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"clean", "-ffd"},
+					Dir:  filepath.Join(repoPath, "src", "some/path"),
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"add", "-A", "src/some/path"},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"add", "-A", "src/some/path"},
+					Dir:  repoPath,
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"commit", "-m", "Knit bump of src/some/path", "--no-verify"},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"commit", "-m", "Knit bump of src/some/path", "--no-verify"},
+					Dir:  repoPath,
 				},
 			}))
 		})
@@ -279,33 +237,23 @@ var _ = Describe("Repo", func() {
 
 			Expect(runner.CombinedOutputCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"add", "-A", "src/different/path"},
-					Dir:        repoPath,
+					Args: []string{"add", "-A", "src/different/path"},
+					Dir:  repoPath,
 				},
 			}))
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"am", "/full/submodule/some.patch"},
-					Dir:        filepath.Join(repoPath, "src", "different/path"),
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"am", "/full/submodule/some.patch"},
+					Dir:  filepath.Join(repoPath, "src", "different/path"),
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"add", "-A", "."},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"add", "-A", "."},
+					Dir:  repoPath,
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"commit", "-m", "Knit patch of src/different/path", "--no-verify"},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"commit", "-m", "Knit patch of src/different/path", "--no-verify"},
+					Dir:  repoPath,
 				},
 			}))
 		})
@@ -322,47 +270,31 @@ var _ = Describe("Repo", func() {
 
 				Expect(runner.CombinedOutputCall.Receives.Commands).To(Equal([]patcher.Command{
 					patcher.Command{
-						Executable: "/some/path/to/git",
-						Args:       []string{"add", "-A", "src/different/path"},
-						Dir:        repoPath,
+						Args: []string{"add", "-A", "src/different/path"},
+						Dir:  repoPath,
 					},
 				}))
 
 				Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 					patcher.Command{
-						Executable: "/some/path/to/git",
-						Args:       []string{"am", "/full/submodule/some.patch"},
-						Dir:        filepath.Join(repoPath, "src", "different/path"),
-						Stderr:     os.Stderr,
-						Stdout:     os.Stdout,
+						Args: []string{"am", "/full/submodule/some.patch"},
+						Dir:  filepath.Join(repoPath, "src", "different/path"),
 					},
 					patcher.Command{
-						Executable: "/some/path/to/git",
-						Args:       []string{"add", "-A", "."},
-						Dir:        filepath.Join(repoPath, "src/some/crazy/submodule"),
-						Stderr:     os.Stderr,
-						Stdout:     os.Stdout,
+						Args: []string{"add", "-A", "."},
+						Dir:  filepath.Join(repoPath, "src/some/crazy/submodule"),
 					},
 					patcher.Command{
-						Executable: "/some/path/to/git",
-						Args:       []string{"commit", "-m", "Knit submodule patch of src/some/crazy/submodule", "--no-verify"},
-						Dir:        filepath.Join(repoPath, "src/some/crazy/submodule"),
-						Stderr:     os.Stderr,
-						Stdout:     os.Stdout,
+						Args: []string{"commit", "-m", "Knit submodule patch of src/some/crazy/submodule", "--no-verify"},
+						Dir:  filepath.Join(repoPath, "src/some/crazy/submodule"),
 					},
 					patcher.Command{
-						Executable: "/some/path/to/git",
-						Args:       []string{"add", "-A", "."},
-						Dir:        repoPath,
-						Stderr:     os.Stderr,
-						Stdout:     os.Stdout,
+						Args: []string{"add", "-A", "."},
+						Dir:  repoPath,
 					},
 					patcher.Command{
-						Executable: "/some/path/to/git",
-						Args:       []string{"commit", "-m", "Knit patch of src/different/path", "--no-verify"},
-						Dir:        repoPath,
-						Stderr:     os.Stderr,
-						Stdout:     os.Stdout,
+						Args: []string{"commit", "-m", "Knit patch of src/different/path", "--no-verify"},
+						Dir:  repoPath,
 					},
 				}))
 			})
@@ -389,18 +321,12 @@ var _ = Describe("Repo", func() {
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"rev-parse", "--verify", branchName},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"rev-parse", "--verify", branchName},
+					Dir:  repoPath,
 				},
 				patcher.Command{
-					Executable: "/some/path/to/git",
-					Args:       []string{"checkout", "-b", branchName},
-					Dir:        repoPath,
-					Stderr:     os.Stderr,
-					Stdout:     os.Stdout,
+					Args: []string{"checkout", "-b", branchName},
+					Dir:  repoPath,
 				},
 			}))
 		})

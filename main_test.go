@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"os"
 	"os/exec"
 
 	"github.com/onsi/gomega/gbytes"
@@ -132,6 +133,25 @@ var _ = Describe("Apply Patches", func() {
 				Entry("missing release repo", "v1", "", "some-patch-repo", "repository-to-patch is a required flag"),
 				Entry("missing patch repo", "v1", "some-repo-to-patch", "", "patch-repository is a required flag"),
 			)
+		})
+
+		Context("when the git executable does not exist", func() {
+
+			BeforeEach(func() {
+				os.Setenv("PATH", "")
+			})
+
+			FIt("exists with exit status 1", func() {
+				command := exec.Command(patcher,
+					"-repository-to-patch", releaseRepo,
+					"-patch-repository", patchesRepo,
+					"-debug",
+					"-version", "1.6.15")
+				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(session, "1m").Should(gexec.Exit(1))
+				Expect(session.Err).To(gbytes.Say(`"git": executable file not found in \$PATH`))
+			})
 		})
 	})
 })

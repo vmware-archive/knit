@@ -17,20 +17,16 @@ type commandRunner interface {
 }
 
 type Repo struct {
-	debug          bool
 	runner         commandRunner
 	repo           string
-	gitPath        string
 	committerName  string
 	committerEmail string
 }
 
-func NewRepo(commandRunner commandRunner, gitPath string, repo string, debug bool, committerName, committerEmail string) Repo {
+func NewRepo(commandRunner commandRunner, repo string, committerName, committerEmail string) Repo {
 	return Repo{
-		debug:          debug,
 		runner:         commandRunner,
 		repo:           repo,
-		gitPath:        gitPath,
 		committerName:  committerName,
 		committerEmail: committerEmail,
 	}
@@ -40,23 +36,16 @@ func (r Repo) ConfigureCommitter() error {
 
 	commands := []Command{
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"config", "--global", "user.name", r.committerName},
-			Dir:        r.repo,
+			Args: []string{"config", "--global", "user.name", r.committerName},
+			Dir:  r.repo,
 		},
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"config", "--global", "user.email", r.committerEmail},
-			Dir:        r.repo,
+			Args: []string{"config", "--global", "user.email", r.committerEmail},
+			Dir:  r.repo,
 		},
 	}
 
 	for _, command := range commands {
-		if r.debug {
-			command.Stdout = os.Stdout
-			command.Stderr = os.Stderr
-		}
-
 		if err := r.runner.Run(command); err != nil {
 			return err
 		}
@@ -68,27 +57,20 @@ func (r Repo) ConfigureCommitter() error {
 func (r Repo) Checkout(checkoutRef string) error {
 	commands := []Command{
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"checkout", checkoutRef},
-			Dir:        r.repo,
+			Args: []string{"checkout", checkoutRef},
+			Dir:  r.repo,
 		},
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"clean", "-ffd"},
-			Dir:        r.repo,
+			Args: []string{"clean", "-ffd"},
+			Dir:  r.repo,
 		},
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"submodule", "update", "--init", "--recursive", "--force"},
-			Dir:        r.repo,
+			Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
+			Dir:  r.repo,
 		},
 	}
 
 	for _, command := range commands {
-		if r.debug {
-			command.Stdout = os.Stdout
-			command.Stderr = os.Stderr
-		}
 
 		if err := r.runner.Run(command); err != nil {
 			return err
@@ -107,19 +89,13 @@ func (r Repo) CleanSubmodules() error {
 	var commands = []Command{}
 	for _, submodule := range submodules {
 		command := Command{
-			Executable: r.gitPath,
-			Args:       []string{"clean", "-ffd"},
-			Dir:        submodule,
+			Args: []string{"clean", "-ffd"},
+			Dir:  submodule,
 		}
 		commands = append(commands, command)
 	}
 
 	for _, command := range commands {
-		if r.debug {
-			command.Stdout = os.Stdout
-			command.Stderr = os.Stderr
-		}
-
 		if err := r.runner.Run(command); err != nil {
 			return err
 		}
@@ -130,14 +106,8 @@ func (r Repo) CleanSubmodules() error {
 
 func (r Repo) ApplyPatch(patch string) error {
 	command := Command{
-		Executable: r.gitPath,
-		Args:       []string{"am", patch},
-		Dir:        r.repo,
-	}
-
-	if r.debug {
-		command.Stdout = os.Stdout
-		command.Stderr = os.Stderr
+		Args: []string{"am", patch},
+		Dir:  r.repo,
 	}
 
 	err := r.runner.Run(command)
@@ -154,37 +124,28 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 
 	commands := []Command{
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"checkout", sha},
-			Dir:        pathToSubmodule,
+			Args: []string{"checkout", sha},
+			Dir:  pathToSubmodule,
 		},
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"submodule", "update", "--init", "--recursive", "--force"},
-			Dir:        pathToSubmodule,
+			Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
+			Dir:  pathToSubmodule,
 		},
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"clean", "-ffd"},
-			Dir:        pathToSubmodule,
+			Args: []string{"clean", "-ffd"},
+			Dir:  pathToSubmodule,
 		},
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"add", "-A", path},
-			Dir:        r.repo,
+			Args: []string{"add", "-A", path},
+			Dir:  r.repo,
 		},
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"commit", "-m", fmt.Sprintf("Knit bump of %s", path), "--no-verify"},
-			Dir:        r.repo,
+			Args: []string{"commit", "-m", fmt.Sprintf("Knit bump of %s", path), "--no-verify"},
+			Dir:  r.repo,
 		},
 	}
 
 	for _, command := range commands {
-		if r.debug {
-			command.Stdout = os.Stdout
-			command.Stderr = os.Stderr
-		}
 
 		if err := r.runner.Run(command); err != nil {
 			return err
@@ -196,14 +157,8 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 
 func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 	applyCommand := Command{
-		Executable: r.gitPath,
-		Args:       []string{"am", fullPathToPatch},
-		Dir:        filepath.Join(r.repo, path),
-	}
-
-	if r.debug {
-		applyCommand.Stdout = os.Stdout
-		applyCommand.Stderr = os.Stderr
+		Args: []string{"am", fullPathToPatch},
+		Dir:  filepath.Join(r.repo, path),
 	}
 
 	if err := r.runner.Run(applyCommand); err != nil {
@@ -211,9 +166,8 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 	}
 
 	addCommand := Command{
-		Executable: r.gitPath,
-		Args:       []string{"add", "-A", path},
-		Dir:        r.repo,
+		Args: []string{"add", "-A", path},
+		Dir:  r.repo,
 	}
 
 	if output, err := r.runner.CombinedOutput(addCommand); err != nil {
@@ -224,22 +178,16 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 
 		commands := []Command{
 			Command{
-				Executable: r.gitPath,
-				Args:       []string{"add", "-A", "."},
-				Dir:        absoluteSubmodulePath,
+				Args: []string{"add", "-A", "."},
+				Dir:  absoluteSubmodulePath,
 			},
 			Command{
-				Executable: r.gitPath,
-				Args:       []string{"commit", "-m", fmt.Sprintf("Knit submodule patch of %s", submodulePath), "--no-verify"},
-				Dir:        absoluteSubmodulePath,
+				Args: []string{"commit", "-m", fmt.Sprintf("Knit submodule patch of %s", submodulePath), "--no-verify"},
+				Dir:  absoluteSubmodulePath,
 			},
 		}
 
 		for _, command := range commands {
-			if r.debug {
-				command.Stdout = os.Stdout
-				command.Stderr = os.Stderr
-			}
 
 			if err := r.runner.Run(command); err != nil {
 				return err
@@ -249,23 +197,16 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 
 	commitCommands := []Command{
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"add", "-A", "."},
-			Dir:        r.repo,
+			Args: []string{"add", "-A", "."},
+			Dir:  r.repo,
 		},
 		Command{
-			Executable: r.gitPath,
-			Args:       []string{"commit", "-m", fmt.Sprintf("Knit patch of %s", path), "--no-verify"},
-			Dir:        r.repo,
+			Args: []string{"commit", "-m", fmt.Sprintf("Knit patch of %s", path), "--no-verify"},
+			Dir:  r.repo,
 		},
 	}
 
 	for _, command := range commitCommands {
-		if r.debug {
-			command.Stdout = os.Stdout
-			command.Stderr = os.Stderr
-		}
-
 		if err := r.runner.Run(command); err != nil {
 			return err
 		}
@@ -276,14 +217,8 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 
 func (r Repo) CheckoutBranch(name string) error {
 	command := Command{
-		Executable: r.gitPath,
-		Args:       []string{"rev-parse", "--verify", name},
-		Dir:        r.repo,
-	}
-
-	if r.debug {
-		command.Stdout = os.Stdout
-		command.Stderr = os.Stderr
+		Args: []string{"rev-parse", "--verify", name},
+		Dir:  r.repo,
 	}
 
 	if err := r.runner.Run(command); err == nil {
@@ -291,14 +226,8 @@ func (r Repo) CheckoutBranch(name string) error {
 	}
 
 	command = Command{
-		Executable: r.gitPath,
-		Args:       []string{"checkout", "-b", name},
-		Dir:        r.repo,
-	}
-
-	if r.debug {
-		command.Stdout = os.Stdout
-		command.Stderr = os.Stderr
+		Args: []string{"checkout", "-b", name},
+		Dir:  r.repo,
 	}
 
 	if err := r.runner.Run(command); err != nil {

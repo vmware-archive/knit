@@ -2,35 +2,42 @@ package patcher
 
 import (
 	"io"
+	"os"
 	"os/exec"
 )
 
 type Command struct {
+	Args []string
+	Dir  string
+}
+
+type CommandRunner struct {
 	Executable string
-	Args       []string
-	Dir        string
 	Stdout     io.Writer
 	Stderr     io.Writer
 }
 
-type CommandRunner struct{}
+func NewCommandRunner(executable string, debug bool) (CommandRunner, error) {
+	executablePath, err := exec.LookPath(executable)
+	if err != nil {
+		return CommandRunner{}, err
+	}
 
-func NewCommandRunner() CommandRunner {
-	return CommandRunner{}
+	commandRunner := CommandRunner{
+		Executable: executablePath,
+	}
+	if debug {
+		commandRunner.Stdout = os.Stdout
+		commandRunner.Stderr = os.Stderr
+	}
+	return commandRunner, nil
 }
 
 func (r CommandRunner) CombinedOutput(command Command) ([]byte, error) {
-	path, err := exec.LookPath(command.Executable)
-	if err != nil {
-		return []byte{}, err
-	}
-
 	cmd := &exec.Cmd{
-		Path:   path,
-		Args:   append([]string{path}, command.Args...),
-		Dir:    command.Dir,
-		Stdout: command.Stdout,
-		Stderr: command.Stderr,
+		Path: r.Executable,
+		Args: append([]string{r.Executable}, command.Args...),
+		Dir:  command.Dir,
 	}
 
 	output, err := cmd.CombinedOutput()
@@ -42,20 +49,15 @@ func (r CommandRunner) CombinedOutput(command Command) ([]byte, error) {
 }
 
 func (r CommandRunner) Run(command Command) error {
-	path, err := exec.LookPath(command.Executable)
-	if err != nil {
-		return err
-	}
-
 	cmd := &exec.Cmd{
-		Path:   path,
-		Args:   append([]string{path}, command.Args...),
+		Path:   r.Executable,
+		Args:   append([]string{r.Executable}, command.Args...),
 		Dir:    command.Dir,
-		Stdout: command.Stdout,
-		Stderr: command.Stderr,
+		Stdout: r.Stdout,
+		Stderr: r.Stderr,
 	}
 
-	err = cmd.Run()
+	err := cmd.Run()
 	if err != nil {
 		return err
 	}

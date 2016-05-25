@@ -16,28 +16,23 @@ var _ = Describe("CommandRunner", func() {
 	Describe("Run", func() {
 		var (
 			runner patcher.CommandRunner
-			stderr *bytes.Buffer
-			stdout *bytes.Buffer
+			err    error
 		)
 
-		BeforeEach(func() {
-			runner = patcher.NewCommandRunner()
-			stderr = bytes.NewBuffer([]byte{})
-			stdout = bytes.NewBuffer([]byte{})
-		})
-
 		It("runs the given command and returns stdout", func() {
-			err := runner.Run(patcher.Command{
-				Executable: "echo",
+			runner, err = patcher.NewCommandRunner("echo", false)
+			Expect(err).NotTo(HaveOccurred())
+			runner.Stderr = bytes.NewBuffer([]byte{})
+			runner.Stdout = bytes.NewBuffer([]byte{})
+
+			err = runner.Run(patcher.Command{
 				Args: []string{
 					"banana",
 				},
-				Stdout: stdout,
-				Stderr: stderr,
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(stdout).To(Equal(bytes.NewBuffer([]byte("banana\n"))))
-			Expect(stderr).To(Equal(bytes.NewBuffer([]byte{})))
+			Expect(runner.Stdout).To(Equal(bytes.NewBuffer([]byte("banana\n"))))
+			Expect(runner.Stderr).To(Equal(bytes.NewBuffer([]byte{})))
 		})
 
 		It("runs the command in the given directory", func() {
@@ -47,45 +42,48 @@ var _ = Describe("CommandRunner", func() {
 			tempDir, err = filepath.EvalSymlinks(tempDir)
 			Expect(err).NotTo(HaveOccurred())
 
+			runner, err = patcher.NewCommandRunner("pwd", false)
+			Expect(err).NotTo(HaveOccurred())
+			runner.Stderr = bytes.NewBuffer([]byte{})
+			runner.Stdout = bytes.NewBuffer([]byte{})
+
 			err = runner.Run(patcher.Command{
-				Executable: "pwd",
-				Dir:        tempDir,
-				Stdout:     stdout,
-				Stderr:     stderr,
+				Dir: tempDir,
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(stdout).To(Equal(bytes.NewBuffer([]byte(fmt.Sprintf("%s\n", tempDir)))))
-			Expect(stderr).To(Equal(bytes.NewBuffer([]byte{})))
+			Expect(runner.Stdout).To(Equal(bytes.NewBuffer([]byte(fmt.Sprintf("%s\n", tempDir)))))
+			Expect(runner.Stderr).To(Equal(bytes.NewBuffer([]byte{})))
 		})
 
 		It("includes stderr output", func() {
+			runner, err = patcher.NewCommandRunner("curl", false)
+			Expect(err).NotTo(HaveOccurred())
+			runner.Stderr = bytes.NewBuffer([]byte{})
+			runner.Stdout = bytes.NewBuffer([]byte{})
+
 			err := runner.Run(patcher.Command{
-				Executable: "curl",
 				Args: []string{
 					"-v",
 					"https://google.com",
 				},
-				Stdout: stdout,
-				Stderr: stderr,
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(stderr).To(ContainSubstring("GET / HTTP/1.1"))
+			Expect(runner.Stderr).To(ContainSubstring("GET / HTTP/1.1"))
 		})
 
 		Context("failure cases", func() {
 			Context("when the given executable does not exist", func() {
 				It("returns an error", func() {
-					err := runner.Run(patcher.Command{
-						Executable: "not-an-executable",
-					})
+					_, err = patcher.NewCommandRunner("not-an-executable", false)
 					Expect(err).To(MatchError(ContainSubstring("executable file not found in $PATH")))
 				})
 			})
 
 			Context("when the command fails to run", func() {
 				It("returns an error", func() {
+					runner, err = patcher.NewCommandRunner("ls", false)
+
 					err := runner.Run(patcher.Command{
-						Executable: "ls",
 						Args: []string{
 							"/some/missing/directory",
 						},
@@ -99,15 +97,15 @@ var _ = Describe("CommandRunner", func() {
 	Describe("CombinedOutput", func() {
 		var (
 			runner patcher.CommandRunner
+			err    error
 		)
 
 		BeforeEach(func() {
-			runner = patcher.NewCommandRunner()
+			runner, err = patcher.NewCommandRunner("echo", false)
 		})
 
 		It("runs the given command and returns stdout", func() {
 			output, err := runner.CombinedOutput(patcher.Command{
-				Executable: "echo",
 				Args: []string{
 					"command output",
 				},
