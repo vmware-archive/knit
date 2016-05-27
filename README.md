@@ -1,9 +1,7 @@
 # knit
-
-A tool that allows you to apply a series of git patches / submodule bumps to a specified repo
+A tool that allows you to apply a series of git patches / submodule bumps to a specified repository
 
 ## knit flags
-
 Currently, knit has only four flags.
 
 All of these flags are required:
@@ -16,9 +14,8 @@ Optionally you can specify:
 
 - `--debug - show all of the ouput of the git commands that are being run`
 
-## running the command
-
-run knit like so:
+## Running the command
+Run knit like so:
 
 ```
 knit --repository-to-patch /some/repository/cf-release --patches-repository /some/patches/repository/cf-release --version 1.7.2
@@ -26,8 +23,7 @@ knit --repository-to-patch /some/repository/cf-release --patches-repository /som
 
 pointing at a sub-directory in your patches repo that is an exact match for the repository-to-patch is VERY important
 
-## directory structure
-
+## Directory structure
 knit relies on a very specific directory structure for the patches repository you supply. It has to look something like this:
 
 ```
@@ -42,8 +38,7 @@ cf-release - name of the top-level component
 ```
 
 ## starting-versions.yml
-
-the starting versions file has a section for each patch version (even if there are no associated patches) and looks like this:
+The starting versions file has a section for each patch version (even if there are no associated patches) and looks like this:
 ```
 ---
 starting_versions:
