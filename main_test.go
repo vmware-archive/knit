@@ -13,7 +13,6 @@ import (
 )
 
 var _ = Describe("Apply Patches", func() {
-
 	Context("when everything is great", func() {
 		AfterEach(func() {
 			command := exec.Command("git", "checkout", "master")
@@ -66,6 +65,22 @@ var _ = Describe("Apply Patches", func() {
 	})
 
 	Context("error cases", func() {
+		Context("when the version specified has no starting version", func() {
+			It("returns an error", func() {
+				command := exec.Command(patcher,
+					"-repository-to-patch", releaseRepo,
+					"-patch-repository", patchesRepo,
+					"-debug",
+					"-version", "1.6.111222")
+
+				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(session, "5m").Should(gexec.Exit(1))
+
+				Eventually(session.Err).Should(gbytes.Say(`Missing starting version "1.6.111222" in starting-versions.yml`))
+			})
+		})
+
 		Context("version branch already exists", func() {
 			BeforeEach(func() {
 				command := exec.Command("git", "checkout", "v222")
@@ -136,7 +151,6 @@ var _ = Describe("Apply Patches", func() {
 		})
 
 		Context("when the git executable does not exist", func() {
-
 			BeforeEach(func() {
 				os.Setenv("PATH", "")
 			})

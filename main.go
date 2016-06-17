@@ -51,7 +51,7 @@ func main() {
 
 	initialCheckpoint, err := versionsParser.GetCheckpoint()
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	err = apply.Checkpoint(initialCheckpoint)

@@ -96,6 +96,15 @@ var _ = Describe("VersionsParser", func() {
 				})
 			})
 
+			Context("when the patchset finds no versions to apply", func() {
+				It("returns an error", func() {
+					patchSet.VersionsToApplyForCall.Returns.Versions = []patcher.Version{}
+
+					_, err := vp.GetCheckpoint()
+					Expect(err).To(MatchError(ContainSubstring(`Missing starting version "1.9.2" in starting-versions.yml`)))
+				})
+			})
+
 			Context("when the patchset fails to find patches", func() {
 				It("returns an error", func() {
 					patchSet.VersionsToApplyForCall.Returns.Versions = []patcher.Version{

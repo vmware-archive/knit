@@ -1,5 +1,7 @@
 package patcher
 
+import "fmt"
+
 type StartingVersions struct {
 	Versions []struct {
 		Version    int
@@ -45,6 +47,10 @@ func (p VersionsParser) GetCheckpoint() (Checkpoint, error) {
 	versionsToApply, err := p.patchSet.VersionsToApplyFor(p.version)
 	if err != nil {
 		return Checkpoint{}, err
+	}
+
+	if len(versionsToApply) == 0 {
+		return Checkpoint{}, fmt.Errorf("Missing starting version %q in starting-versions.yml", p.version)
 	}
 
 	for _, version := range versionsToApply {
