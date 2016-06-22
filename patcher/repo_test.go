@@ -219,6 +219,34 @@ var _ = Describe("Repo", func() {
 			}))
 		})
 
+		It("bumps a submodule of a submodule", func() {
+			err := r.BumpSubmodule("src/some/path/src/some/other/path", "a-sha")
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
+				patcher.Command{
+					Args: []string{"checkout", "a-sha"},
+					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
+				},
+				patcher.Command{
+					Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
+					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
+				},
+				patcher.Command{
+					Args: []string{"clean", "-ffd"},
+					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
+				},
+				patcher.Command{
+					Args: []string{"add", "-A", "src/some/other/path"},
+					Dir:  filepath.Join(repoPath, "src/some/path"),
+				},
+				patcher.Command{
+					Args: []string{"commit", "-m", "Knit bump of src/some/other/path", "--no-verify"},
+					Dir:  filepath.Join(repoPath, "src/some/path"),
+				},
+			}))
+		})
+
 		Context("when an error occurs", func() {
 			Context("when the command fails", func() {
 				It("returns an error", func() {

@@ -33,7 +33,6 @@ func NewRepo(commandRunner commandRunner, repo string, committerName, committerE
 }
 
 func (r Repo) ConfigureCommitter() error {
-
 	commands := []Command{
 		Command{
 			Args: []string{"config", "--global", "user.name", r.committerName},
@@ -119,8 +118,15 @@ func (r Repo) ApplyPatch(patch string) error {
 }
 
 func (r Repo) BumpSubmodule(path, sha string) error {
-
 	pathToSubmodule := filepath.Join(r.repo, path)
+	pathToRepo := r.repo
+
+	re := regexp.MustCompile(`(src/.*)/(src/.*)`)
+	matches := re.FindStringSubmatch(path)
+	if len(matches) == 3 {
+		pathToRepo = filepath.Join(r.repo, matches[1])
+		path = matches[2]
+	}
 
 	commands := []Command{
 		Command{
@@ -137,16 +143,15 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 		},
 		Command{
 			Args: []string{"add", "-A", path},
-			Dir:  r.repo,
+			Dir:  pathToRepo,
 		},
 		Command{
 			Args: []string{"commit", "-m", fmt.Sprintf("Knit bump of %s", path), "--no-verify"},
-			Dir:  r.repo,
+			Dir:  pathToRepo,
 		},
 	}
 
 	for _, command := range commands {
-
 		if err := r.runner.Run(command); err != nil {
 			return err
 		}
@@ -188,7 +193,6 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 		}
 
 		for _, command := range commands {
-
 			if err := r.runner.Run(command); err != nil {
 				return err
 			}
