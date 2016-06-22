@@ -142,16 +142,29 @@ var _ = Describe("Repo", func() {
 			}))
 		})
 
+		Context("when the .gitmodules file does not exist", func() {
+			BeforeEach(func() {
+				err := os.Remove(repoSubmoduleFilepath)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("is a no-op", func() {
+				err := r.CleanSubmodules()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(runner.RunCall.Receives.Commands).To(HaveLen(0))
+			})
+		})
+
 		Context("failure cases", func() {
 			Context("when the .gitmodules file cannot be read", func() {
 				BeforeEach(func() {
-					err := os.Remove(repoSubmoduleFilepath)
+					err := os.Chmod(repoSubmoduleFilepath, 0000)
 					Expect(err).NotTo(HaveOccurred())
 				})
 
 				It("returns an error", func() {
 					err := r.CleanSubmodules()
-					Expect(err).To(MatchError(ContainSubstring("no such file or directory")))
+					Expect(err).To(MatchError(ContainSubstring("permission denied")))
 				})
 			})
 

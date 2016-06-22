@@ -253,6 +253,10 @@ func (r Repo) CheckoutBranch(name string) error {
 func (r Repo) submodules() ([]string, error) {
 	modules, err := ioutil.ReadFile(filepath.Join(r.repo, ".gitmodules"))
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+
 		return nil, err
 	}
 
