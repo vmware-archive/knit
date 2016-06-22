@@ -244,6 +244,14 @@ var _ = Describe("Repo", func() {
 					Args: []string{"commit", "-m", "Knit bump of src/some/other/path", "--no-verify"},
 					Dir:  filepath.Join(repoPath, "src/some/path"),
 				},
+				patcher.Command{
+					Args: []string{"add", "-A", "src/some/path"},
+					Dir:  repoPath,
+				},
+				patcher.Command{
+					Args: []string{"commit", "-m", "Knit bump of src/some/path", "--no-verify"},
+					Dir:  repoPath,
+				},
 			}))
 		})
 

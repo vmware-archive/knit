@@ -151,6 +151,16 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 		},
 	}
 
+	if len(matches) == 3 {
+		commands = append(commands, Command{
+			Args: []string{"add", "-A", matches[1]},
+			Dir:  r.repo,
+		}, Command{
+			Args: []string{"commit", "-m", fmt.Sprintf("Knit bump of %s", matches[1]), "--no-verify"},
+			Dir:  r.repo,
+		})
+	}
+
 	for _, command := range commands {
 		if err := r.runner.Run(command); err != nil {
 			return err
