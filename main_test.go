@@ -151,8 +151,15 @@ var _ = Describe("Apply Patches", func() {
 		})
 
 		Context("when the git executable does not exist", func() {
+			var path string
+
 			BeforeEach(func() {
+				path = os.Getenv("PATH")
 				os.Setenv("PATH", "")
+			})
+
+			AfterEach(func() {
+				os.Setenv("PATH", path)
 			})
 
 			It("exists with exit status 1", func() {
