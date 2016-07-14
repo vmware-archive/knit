@@ -44,7 +44,7 @@ var _ = Describe("Apply Patches", func() {
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
-			Eventually(session, "10s").Should(gexec.Exit(0))
+			Eventually(session, "30s").Should(gexec.Exit(0))
 			Expect(session.Out).To(gbytes.Say("On branch 1.6.15"))
 			Expect(session.Out).To(gbytes.Say("nothing to commit, working directory clean"))
 
@@ -63,7 +63,6 @@ var _ = Describe("Apply Patches", func() {
 		})
 
 		It("does not print any logs when --quiet flag is provided", func() {
-
 			command := exec.Command(patcher,
 				"-repository-to-patch", releaseRepo,
 				"-patch-repository", patchesRepo,
