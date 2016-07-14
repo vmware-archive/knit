@@ -20,7 +20,7 @@ var _ = Describe("CommandRunner", func() {
 		)
 
 		It("runs the given command and returns stdout", func() {
-			runner, err = patcher.NewCommandRunner("echo", false)
+			runner, err = patcher.NewCommandRunner("echo", true)
 			Expect(err).NotTo(HaveOccurred())
 			runner.Stderr = bytes.NewBuffer([]byte{})
 			runner.Stdout = bytes.NewBuffer([]byte{})
@@ -42,7 +42,7 @@ var _ = Describe("CommandRunner", func() {
 			tempDir, err = filepath.EvalSymlinks(tempDir)
 			Expect(err).NotTo(HaveOccurred())
 
-			runner, err = patcher.NewCommandRunner("pwd", false)
+			runner, err = patcher.NewCommandRunner("pwd", true)
 			Expect(err).NotTo(HaveOccurred())
 			runner.Stderr = bytes.NewBuffer([]byte{})
 			runner.Stdout = bytes.NewBuffer([]byte{})
@@ -56,7 +56,7 @@ var _ = Describe("CommandRunner", func() {
 		})
 
 		It("includes stderr output", func() {
-			runner, err = patcher.NewCommandRunner("curl", false)
+			runner, err = patcher.NewCommandRunner("curl", true)
 			Expect(err).NotTo(HaveOccurred())
 			runner.Stderr = bytes.NewBuffer([]byte{})
 			runner.Stdout = bytes.NewBuffer([]byte{})
@@ -74,14 +74,14 @@ var _ = Describe("CommandRunner", func() {
 		Context("failure cases", func() {
 			Context("when the given executable does not exist", func() {
 				It("returns an error", func() {
-					_, err = patcher.NewCommandRunner("not-an-executable", false)
+					_, err = patcher.NewCommandRunner("not-an-executable", true)
 					Expect(err).To(MatchError(ContainSubstring("executable file not found in $PATH")))
 				})
 			})
 
 			Context("when the command fails to run", func() {
 				It("returns an error", func() {
-					runner, err = patcher.NewCommandRunner("ls", false)
+					runner, err = patcher.NewCommandRunner("ls", true)
 
 					err := runner.Run(patcher.Command{
 						Args: []string{
@@ -101,7 +101,7 @@ var _ = Describe("CommandRunner", func() {
 		)
 
 		BeforeEach(func() {
-			runner, err = patcher.NewCommandRunner("echo", false)
+			runner, err = patcher.NewCommandRunner("echo", true)
 		})
 
 		It("runs the given command and returns stdout", func() {

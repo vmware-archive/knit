@@ -13,13 +13,13 @@ func main() {
 		releaseRepository string
 		patchesRepository string
 		version           string
-		debug             bool
+		quiet             bool
 	)
 
 	flag.StringVar(&releaseRepository, "repository-to-patch", "", "")
 	flag.StringVar(&patchesRepository, "patch-repository", "", "")
 	flag.StringVar(&version, "version", "", "")
-	flag.BoolVar(&debug, "debug", false, "")
+	flag.BoolVar(&quiet, "quiet", false, "")
 	flag.Parse()
 
 	var missingFlag string
@@ -42,7 +42,7 @@ func main() {
 	}
 
 	versionsParser := patcher.NewVersionsParser(version, patcher.NewPatchSet(patchesRepository))
-	runner, err := patcher.NewCommandRunner(gitPath, debug)
+	runner, err := patcher.NewCommandRunner(gitPath, quiet)
 	if err != nil {
 		log.Fatalln(err)
 	}

@@ -17,7 +17,7 @@ type CommandRunner struct {
 	Stderr     io.Writer
 }
 
-func NewCommandRunner(executable string, debug bool) (CommandRunner, error) {
+func NewCommandRunner(executable string, quiet bool) (CommandRunner, error) {
 	executablePath, err := exec.LookPath(executable)
 	if err != nil {
 		return CommandRunner{}, err
@@ -26,7 +26,7 @@ func NewCommandRunner(executable string, debug bool) (CommandRunner, error) {
 	commandRunner := CommandRunner{
 		Executable: executablePath,
 	}
-	if debug {
+	if !quiet {
 		commandRunner.Stdout = os.Stdout
 		commandRunner.Stderr = os.Stderr
 	}

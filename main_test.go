@@ -32,7 +32,6 @@ var _ = Describe("Apply Patches", func() {
 			command := exec.Command(patcher,
 				"-repository-to-patch", releaseRepo,
 				"-patch-repository", patchesRepo,
-				"-debug",
 				"-version", "1.6.15")
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -62,6 +61,26 @@ var _ = Describe("Apply Patches", func() {
 			Expect(session.Out).To(gbytes.Say(`Knit patch of src/uaa`))
 			Expect(session.Out).To(gbytes.Say(`Knit patch of src/uaa`))
 		})
+
+		It("does not print any logs when --quiet flag is provided", func() {
+
+			command := exec.Command(patcher,
+				"-repository-to-patch", releaseRepo,
+				"-patch-repository", patchesRepo,
+				"-quiet",
+				"-version", "1.6.15")
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10m").Should(gexec.Exit(0))
+
+			Eventually(session).Should(gexec.Exit(0))
+			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/uaa`))
+			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/etcd-release`))
+			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/consul-release`))
+			Expect(session.Out).NotTo(gbytes.Say(`add golang 1\.5\.3 to main blobs\.yml, needed by new consul release.*`))
+			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/uaa`))
+			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/uaa`))
+		})
 	})
 
 	Context("error cases", func() {
@@ -70,7 +89,6 @@ var _ = Describe("Apply Patches", func() {
 				command := exec.Command(patcher,
 					"-repository-to-patch", releaseRepo,
 					"-patch-repository", patchesRepo,
-					"-debug",
 					"-version", "1.6.111222")
 
 				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -120,7 +138,6 @@ var _ = Describe("Apply Patches", func() {
 				command := exec.Command(patcher,
 					"-repository-to-patch", releaseRepo,
 					"-patch-repository", patchesRepo,
-					"-debug",
 					"-version", "1.6.1")
 
 				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
@@ -166,7 +183,6 @@ var _ = Describe("Apply Patches", func() {
 				command := exec.Command(patcher,
 					"-repository-to-patch", releaseRepo,
 					"-patch-repository", patchesRepo,
-					"-debug",
 					"-version", "1.6.15")
 				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
