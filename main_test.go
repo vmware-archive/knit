@@ -46,7 +46,7 @@ var _ = Describe("Apply Patches", func() {
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
 			Expect(session.Out).To(gbytes.Say("On branch 1.6.15"))
-			Expect(session.Out).To(gbytes.Say("nothing to commit, working directory clean"))
+			Expect(session.Out).To(gbytes.Say("nothing to commit"))
 
 			command = exec.Command("git", "log", "--pretty=format:%s", "-n", "8")
 			command.Dir = releaseRepo
