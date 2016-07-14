@@ -130,6 +130,10 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 
 	commands := []Command{
 		Command{
+			Args: []string{"fetch"},
+			Dir:  pathToSubmodule,
+		},
+		Command{
 			Args: []string{"checkout", sha},
 			Dir:  pathToSubmodule,
 		},

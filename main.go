@@ -44,8 +44,9 @@ func main() {
 	versionsParser := patcher.NewVersionsParser(version, patcher.NewPatchSet(patchesRepository))
 	runner, err := patcher.NewCommandRunner(gitPath, debug)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
+
 	repo := patcher.NewRepo(runner, releaseRepository, "bot", "witchcraft@example.com")
 	apply := patcher.NewApply(repo)
 

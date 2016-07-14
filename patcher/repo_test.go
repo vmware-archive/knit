@@ -210,16 +210,20 @@ var _ = Describe("Repo", func() {
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
+					Args: []string{"fetch"},
+					Dir:  filepath.Join(repoPath, "src", "some", "path"),
+				},
+				patcher.Command{
 					Args: []string{"checkout", "a-sha"},
-					Dir:  filepath.Join(repoPath, "src", "some/path"),
+					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
 					Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
-					Dir:  filepath.Join(repoPath, "src", "some/path"),
+					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
 					Args: []string{"clean", "-ffd"},
-					Dir:  filepath.Join(repoPath, "src", "some/path"),
+					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
 					Args: []string{"add", "-A", "src/some/path"},
@@ -237,6 +241,10 @@ var _ = Describe("Repo", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
+				patcher.Command{
+					Args: []string{"fetch"},
+					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
+				},
 				patcher.Command{
 					Args: []string{"checkout", "a-sha"},
 					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
