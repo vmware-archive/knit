@@ -104,6 +104,10 @@ var _ = Describe("Repo", func() {
 					Dir:  repoPath,
 				},
 				patcher.Command{
+					Args: []string{"submodule", "sync", "--recursive"},
+					Dir:  repoPath,
+				},
+				patcher.Command{
 					Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
 					Dir:  repoPath,
 				},

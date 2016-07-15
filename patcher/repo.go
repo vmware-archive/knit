@@ -64,6 +64,10 @@ func (r Repo) Checkout(checkoutRef string) error {
 			Dir:  r.repo,
 		},
 		Command{
+			Args: []string{"submodule", "sync", "--recursive"},
+			Dir:  r.repo,
+		},
+		Command{
 			Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
 			Dir:  r.repo,
 		},
