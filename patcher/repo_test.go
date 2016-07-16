@@ -104,6 +104,10 @@ var _ = Describe("Repo", func() {
 					Dir:  repoPath,
 				},
 				patcher.Command{
+					Args: []string{"submodule", "init"},
+					Dir:  repoPath,
+				},
+				patcher.Command{
 					Args: []string{"submodule", "sync", "--recursive"},
 					Dir:  repoPath,
 				},
@@ -222,6 +226,10 @@ var _ = Describe("Repo", func() {
 					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
+					Args: []string{"submodule", "init"},
+					Dir:  filepath.Join(repoPath, "src", "some", "path"),
+				},
+				patcher.Command{
 					Args: []string{"submodule", "sync", "--recursive"},
 					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
@@ -255,6 +263,10 @@ var _ = Describe("Repo", func() {
 				},
 				patcher.Command{
 					Args: []string{"checkout", "a-sha"},
+					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
+				},
+				patcher.Command{
+					Args: []string{"submodule", "init"},
 					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
 				},
 				patcher.Command{

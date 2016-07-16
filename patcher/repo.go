@@ -64,6 +64,10 @@ func (r Repo) Checkout(checkoutRef string) error {
 			Dir:  r.repo,
 		},
 		Command{
+			Args: []string{"submodule", "init"},
+			Dir:  r.repo,
+		},
+		Command{
 			Args: []string{"submodule", "sync", "--recursive"},
 			Dir:  r.repo,
 		},
@@ -139,6 +143,10 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 		},
 		Command{
 			Args: []string{"checkout", sha},
+			Dir:  pathToSubmodule,
+		},
+		Command{
+			Args: []string{"submodule", "init"},
 			Dir:  pathToSubmodule,
 		},
 		Command{
