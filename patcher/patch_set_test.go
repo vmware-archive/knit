@@ -25,8 +25,11 @@ starting_versions:
   submodules:
     "src/fake-sub-1":
       ref: fake-sha-1
+      patches:
+      - Sub-1.patch
     "src/fake-sub-2":
-      ref: fake-sha-2
+      patches:
+      - Sub-2.patch
 `
 
 var _ = Describe("PatchSet", func() {
@@ -56,8 +59,8 @@ var _ = Describe("PatchSet", func() {
 		files = []string{
 			filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
 			filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
-			filepath.Join(patchesRepo, "1.9", "2", "src", "something", "0001-Another.patch"),
-			filepath.Join(patchesRepo, "1.9", "2", "src", "something", "0002-Another.patch"),
+			filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
+			filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
 		}
 
 		for _, file := range files {
@@ -93,7 +96,14 @@ var _ = Describe("PatchSet", func() {
 					},
 					SubmoduleBumps: map[string]string{
 						"src/fake-sub-1": "fake-sha-1",
-						"src/fake-sub-2": "fake-sha-2",
+					},
+					SubmodulePatches: map[string][]string{
+						"src/fake-sub-1": {
+							filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
+						},
+						"src/fake-sub-2": {
+							filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
+						},
 					},
 				},
 			}))
@@ -129,20 +139,6 @@ var _ = Describe("PatchSet", func() {
 					Expect(err).To(MatchError("yaml: could not find expected directive name"))
 				})
 			})
-		})
-	})
-
-	Describe("SubmodulePatchesFor", func() {
-		It("returns a map of patches to be applied to submodules", func() {
-			submodulePatches, err := ps.SubmodulePatchesFor(patcher.Version{Major: 1, Minor: 9, Patch: 2, Ref: "v124"})
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(submodulePatches).To(Equal(map[string][]string{
-				"src/something": []string{
-					filepath.Join(patchesRepo, "1.9", "2", "src", "something", "0001-Another.patch"),
-					filepath.Join(patchesRepo, "1.9", "2", "src", "something", "0002-Another.patch"),
-				},
-			}))
 		})
 	})
 })

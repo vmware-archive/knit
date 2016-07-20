@@ -3,7 +3,6 @@ package patcher
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -20,12 +19,13 @@ func NewPatchSet(path string) PatchSet {
 }
 
 type Version struct {
-	Major          int
-	Minor          int
-	Patch          int
-	Ref            string
-	Patches        []string
-	SubmoduleBumps map[string]string
+	Major            int
+	Minor            int
+	Patch            int
+	Ref              string
+	Patches          []string
+	SubmoduleBumps   map[string]string
+	SubmodulePatches map[string][]string
 }
 
 func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
@@ -43,11 +43,12 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 	var currentVersion Version
 	for _, v := range startingVersions.Versions {
 		vers := Version{
-			Major:          majorVersion,
-			Minor:          minorVersion,
-			Patch:          v.Version,
-			Ref:            v.Ref,
-			SubmoduleBumps: map[string]string{},
+			Major:            majorVersion,
+			Minor:            minorVersion,
+			Patch:            v.Version,
+			Ref:              v.Ref,
+			SubmoduleBumps:   map[string]string{},
+			SubmodulePatches: map[string][]string{},
 		}
 
 		releaseDirName := fmt.Sprintf("%d.%d", majorVersion, minorVersion)
@@ -57,7 +58,16 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 		}
 
 		for path, submodule := range v.Submodules {
-			vers.SubmoduleBumps[path] = submodule.Ref
+			if submodule.Ref != "" {
+				vers.SubmoduleBumps[path] = submodule.Ref
+			}
+
+			submodulePatches := []string{}
+
+			for _, patch := range submodule.Patches {
+				submodulePatches = append(submodulePatches, filepath.Join(ps.path, releaseDirName, patch))
+			}
+			vers.SubmodulePatches[path] = submodulePatches
 		}
 
 		if v.Version == patchVersion {
@@ -75,37 +85,6 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 	}
 
 	return versionsToApply, nil
-}
-
-func (ps PatchSet) SubmodulePatchesFor(version Version) (map[string][]string, error) {
-	patchVersionDir := fmt.Sprintf("%d.%d/%d", version.Major, version.Minor, version.Patch)
-	patchDir := filepath.Join(ps.path, patchVersionDir)
-
-	submodulePatches := make(map[string][]string)
-
-	err := filepath.Walk(patchDir, filepath.WalkFunc(func(path string, info os.FileInfo, err error) error {
-		if filepath.Ext(path) == ".patch" && filepath.Dir(path) != patchDir {
-			rel, err := filepath.Rel(patchDir, path)
-			if err != nil {
-				return err
-			}
-
-			relativePatchDir, err := filepath.Rel(patchDir, filepath.Dir(path))
-			if err != nil {
-				return err
-			}
-
-			absolutePathToPatch := filepath.Join(patchDir, rel)
-
-			submodulePatches[relativePatchDir] = append(submodulePatches[relativePatchDir], absolutePathToPatch)
-		}
-		return nil
-	}))
-	if err != nil {
-		return nil, err
-	}
-
-	return submodulePatches, nil
 }
 
 func (ps PatchSet) parseVersion(version string) (int, int, int, error) {

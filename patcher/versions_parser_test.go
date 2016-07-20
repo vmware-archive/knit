@@ -38,12 +38,14 @@ var _ = Describe("VersionsParser", func() {
 						"patch-2",
 						"patch-3",
 					},
-				},
-			}
-			patchSet.SubmodulePatchesForCall.Returns.SubmodulePatches = map[string][]string{
-				"src/submodule1": []string{
-					"patch-repo/release/1.6/2/src/submodule1/foo.patch",
-					"patch-repo/release/1.6//2/src/submodule1/foo2.patch",
+					SubmodulePatches: map[string][]string{
+						"src/foo": {
+							"foo-1.patch",
+						},
+						"src/bar": {
+							"bar-1.patch",
+						},
+					},
 				},
 			}
 
@@ -59,9 +61,11 @@ var _ = Describe("VersionsParser", func() {
 							"src/bar": "ref-2",
 						},
 						SubmodulePatches: map[string][]string{
-							"src/submodule1": []string{
-								"patch-repo/release/1.6/2/src/submodule1/foo.patch",
-								"patch-repo/release/1.6//2/src/submodule1/foo2.patch",
+							"src/foo": {
+								"foo-1.patch",
+							},
+							"src/bar": {
+								"bar-1.patch",
 							},
 						},
 					},
@@ -71,21 +75,6 @@ var _ = Describe("VersionsParser", func() {
 			}))
 
 			Expect(patchSet.VersionsToApplyForCall.Receives.Version).To(Equal("1.9.2"))
-			Expect(patchSet.SubmodulePatchesForCall.Receives.Version).To(Equal(patcher.Version{
-				Major: 1,
-				Minor: 9,
-				Patch: 2,
-				Ref:   "v124",
-				Patches: []string{
-					"patch-1",
-					"patch-2",
-					"patch-3",
-				},
-				SubmoduleBumps: map[string]string{
-					"src/foo": "ref-1",
-					"src/bar": "ref-2",
-				},
-			}))
 		})
 
 		Context("when an error occurs", func() {
@@ -104,18 +93,6 @@ var _ = Describe("VersionsParser", func() {
 
 					_, err := vp.GetCheckpoint()
 					Expect(err).To(MatchError(ContainSubstring(`Missing starting version "1.9.2" in starting-versions.yml`)))
-				})
-			})
-
-			Context("when the patchset fails to find submodule patches", func() {
-				It("returns an error", func() {
-					patchSet.VersionsToApplyForCall.Returns.Versions = []patcher.Version{
-						{Major: 1, Minor: 9, Patch: 2, Ref: "v124"},
-					}
-					patchSet.SubmodulePatchesForCall.Returns.Error = errors.New("failed to find any submodule patches")
-
-					_, err := vp.GetCheckpoint()
-					Expect(err).To(MatchError(ContainSubstring("failed to find any submodule patches")))
 				})
 			})
 		})
