@@ -6,7 +6,7 @@ type StartingVersions struct {
 	Versions []struct {
 		Version    int
 		Ref        string
-		Submodules map[string]string
+		Submodules map[string]Submodule
 	} `yaml:"starting_versions"`
 }
 
@@ -27,6 +27,10 @@ type patchSet interface {
 	PatchesFor(Version) (patches []string, err error)
 	BumpsFor(Version) (bumps map[string]string, err error)
 	SubmodulePatchesFor(Version) (submodulePatches map[string][]string, err error)
+}
+
+type Submodule struct {
+	Ref string
 }
 
 type VersionsParser struct {

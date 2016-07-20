@@ -20,8 +20,10 @@ starting_versions:
 - version: 2
   ref: 'v124'
   submodules:
-    "src/fake-sub-1": fake-sha-1
-    "src/fake-sub-2": fake-sha-2
+    "src/fake-sub-1":
+      ref: fake-sha-1
+    "src/fake-sub-2":
+      ref: fake-sha-2
 `
 
 var _ = Describe("PatchSet", func() {

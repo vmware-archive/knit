@@ -79,7 +79,12 @@ func (ps PatchSet) BumpsFor(version Version) (map[string]string, error) {
 		return map[string]string{}, fmt.Errorf("Invalid patch version: %d", version.Patch)
 	}
 
-	return startingVersions.Versions[version.Patch].Submodules, nil
+	bumps := map[string]string{}
+	for path, submodule := range startingVersions.Versions[version.Patch].Submodules {
+		bumps[path] = submodule.Ref
+	}
+
+	return bumps, nil
 }
 
 func (ps PatchSet) SubmodulePatchesFor(version Version) (map[string][]string, error) {
