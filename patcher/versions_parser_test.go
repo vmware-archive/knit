@@ -24,12 +24,17 @@ var _ = Describe("VersionsParser", func() {
 
 		It("returns the checkpoint of the patches repository", func() {
 			patchSet.VersionsToApplyForCall.Returns.Versions = []patcher.Version{
-				{Major: 1, Minor: 9, Patch: 2, Ref: "v124"},
-			}
-			patchSet.PatchesForCall.Returns.Patches = []string{
-				"patch-1",
-				"patch-2",
-				"patch-3",
+				{
+					Major: 1,
+					Minor: 9,
+					Patch: 2,
+					Ref:   "v124",
+					Patches: []string{
+						"patch-1",
+						"patch-2",
+						"patch-3",
+					},
+				},
 			}
 			patchSet.BumpsForCall.Returns.Bumps = map[string]string{
 				"src/foo": "ref-1",
@@ -66,23 +71,27 @@ var _ = Describe("VersionsParser", func() {
 			}))
 
 			Expect(patchSet.VersionsToApplyForCall.Receives.Version).To(Equal("1.9.2"))
-			Expect(patchSet.PatchesForCall.Receives.Version).To(Equal(patcher.Version{
-				Major: 1,
-				Minor: 9,
-				Patch: 2,
-				Ref:   "v124",
-			}))
 			Expect(patchSet.BumpsForCall.Receives.Version).To(Equal(patcher.Version{
 				Major: 1,
 				Minor: 9,
 				Patch: 2,
 				Ref:   "v124",
+				Patches: []string{
+					"patch-1",
+					"patch-2",
+					"patch-3",
+				},
 			}))
 			Expect(patchSet.SubmodulePatchesForCall.Receives.Version).To(Equal(patcher.Version{
 				Major: 1,
 				Minor: 9,
 				Patch: 2,
 				Ref:   "v124",
+				Patches: []string{
+					"patch-1",
+					"patch-2",
+					"patch-3",
+				},
 			}))
 		})
 
@@ -102,18 +111,6 @@ var _ = Describe("VersionsParser", func() {
 
 					_, err := vp.GetCheckpoint()
 					Expect(err).To(MatchError(ContainSubstring(`Missing starting version "1.9.2" in starting-versions.yml`)))
-				})
-			})
-
-			Context("when the patchset fails to find patches", func() {
-				It("returns an error", func() {
-					patchSet.VersionsToApplyForCall.Returns.Versions = []patcher.Version{
-						{Major: 1, Minor: 9, Patch: 2, Ref: "v124"},
-					}
-					patchSet.PatchesForCall.Returns.Error = errors.New("failed to find patches")
-
-					_, err := vp.GetCheckpoint()
-					Expect(err).To(MatchError(ContainSubstring("failed to find patches")))
 				})
 			})
 

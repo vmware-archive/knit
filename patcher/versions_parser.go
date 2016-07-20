@@ -7,6 +7,7 @@ type StartingVersions struct {
 		Version    int
 		Ref        string
 		Submodules map[string]Submodule
+		Patches    []string
 	} `yaml:"starting_versions"`
 }
 
@@ -58,11 +59,6 @@ func (p VersionsParser) GetCheckpoint() (Checkpoint, error) {
 	}
 
 	for _, version := range versionsToApply {
-		patches, err := p.patchSet.PatchesFor(version)
-		if err != nil {
-			return Checkpoint{}, err
-		}
-
 		bumps, err := p.patchSet.BumpsFor(version)
 		if err != nil {
 			return Checkpoint{}, err
@@ -74,7 +70,7 @@ func (p VersionsParser) GetCheckpoint() (Checkpoint, error) {
 		}
 
 		checkpoint.Changes = append(checkpoint.Changes, Changeset{
-			Patches:          patches,
+			Patches:          version.Patches,
 			Bumps:            bumps,
 			SubmodulePatches: submodulePatches,
 		})

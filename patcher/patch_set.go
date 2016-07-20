@@ -20,10 +20,11 @@ func NewPatchSet(path string) PatchSet {
 }
 
 type Version struct {
-	Major int
-	Minor int
-	Patch int
-	Ref   string
+	Major   int
+	Minor   int
+	Patch   int
+	Ref     string
+	Patches []string
 }
 
 func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
@@ -47,6 +48,12 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 			Ref:   v.Ref,
 		}
 
+		releaseDirName := fmt.Sprintf("%d.%d", majorVersion, minorVersion)
+
+		for _, patch := range v.Patches {
+			vers.Patches = append(vers.Patches, filepath.Join(ps.path, releaseDirName, patch))
+		}
+
 		if v.Version == patchVersion {
 			currentVersion = vers
 		}
@@ -65,8 +72,7 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 }
 
 func (ps PatchSet) PatchesFor(version Version) ([]string, error) {
-	releaseDirName := fmt.Sprintf("%d.%d", version.Major, version.Minor)
-	return filepath.Glob(filepath.Join(ps.path, releaseDirName, strconv.Itoa(version.Patch), "*.patch"))
+	return version.Patches, nil
 }
 
 func (ps PatchSet) BumpsFor(version Version) (map[string]string, error) {

@@ -19,6 +19,9 @@ starting_versions:
   ref: 'v123'
 - version: 2
   ref: 'v124'
+  patches:
+  - Top-1.patch
+  - Top-2.patch
   submodules:
     "src/fake-sub-1":
       ref: fake-sha-1
@@ -51,8 +54,8 @@ var _ = Describe("PatchSet", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		files = []string{
-			filepath.Join(patchesRepo, "1.9", "2", "0001-Some-Patch.patch"),
-			filepath.Join(patchesRepo, "1.9", "2", "0002-Some-Other.patch"),
+			filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
+			filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
 			filepath.Join(patchesRepo, "1.9", "2", "src", "something", "0001-Another.patch"),
 			filepath.Join(patchesRepo, "1.9", "2", "src", "something", "0002-Another.patch"),
 		}
@@ -84,6 +87,10 @@ var _ = Describe("PatchSet", func() {
 					Minor: 9,
 					Patch: 2,
 					Ref:   "v124",
+					Patches: []string{
+						filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
+						filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
+					},
 				},
 			}))
 		})
@@ -123,12 +130,21 @@ var _ = Describe("PatchSet", func() {
 
 	Describe("PatchesFor", func() {
 		It("returns the patches for the given version", func() {
-			patches, err := ps.PatchesFor(patcher.Version{Major: 1, Minor: 9, Patch: 2, Ref: "v124"})
+			patches, err := ps.PatchesFor(patcher.Version{
+				Major: 1,
+				Minor: 9,
+				Patch: 2,
+				Ref:   "v124",
+				Patches: []string{
+					"Top-1.patch",
+					"Top-2.patch",
+				},
+			})
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(patches).To(Equal([]string{
-				filepath.Join(patchesRepo, "1.9", "2", "0001-Some-Patch.patch"),
-				filepath.Join(patchesRepo, "1.9", "2", "0002-Some-Other.patch"),
+				"Top-1.patch",
+				"Top-2.patch",
 			}))
 		})
 	})
