@@ -12,7 +12,7 @@ All of these flags are required:
 
 Optionally you can specify:
 
-- `--debug - show all of the ouput of the git commands that are being run`
+- `--quiet - suppress all of the ouput of the git commands that are being run`
 
 ## Running the command
 Run knit like so:
