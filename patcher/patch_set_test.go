@@ -91,6 +91,10 @@ var _ = Describe("PatchSet", func() {
 						filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
 						filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
 					},
+					SubmoduleBumps: map[string]string{
+						"src/fake-sub-1": "fake-sha-1",
+						"src/fake-sub-2": "fake-sha-2",
+					},
 				},
 			}))
 		})
@@ -123,59 +127,6 @@ var _ = Describe("PatchSet", func() {
 				It("returns an error", func() {
 					_, err := ps.VersionsToApplyFor("1.9.2")
 					Expect(err).To(MatchError("yaml: could not find expected directive name"))
-				})
-			})
-		})
-	})
-
-	Describe("PatchesFor", func() {
-		It("returns the patches for the given version", func() {
-			patches, err := ps.PatchesFor(patcher.Version{
-				Major: 1,
-				Minor: 9,
-				Patch: 2,
-				Ref:   "v124",
-				Patches: []string{
-					"Top-1.patch",
-					"Top-2.patch",
-				},
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(patches).To(Equal([]string{
-				"Top-1.patch",
-				"Top-2.patch",
-			}))
-		})
-	})
-
-	Describe("BumpsFor", func() {
-		It("returns the submodule bumps for the given version", func() {
-			bumps, err := ps.BumpsFor(patcher.Version{Major: 1, Minor: 9, Patch: 2, Ref: "v124"})
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(bumps).To(Equal(map[string]string{
-				"src/fake-sub-1": "fake-sha-1",
-				"src/fake-sub-2": "fake-sha-2",
-			}))
-		})
-
-		Context("failure cases", func() {
-			Context("when the starting-versions file does not exist", func() {
-				BeforeEach(func() {
-					ps = patcher.NewPatchSet("/some/broken/patch")
-				})
-
-				It("returns an error", func() {
-					_, err := ps.BumpsFor(patcher.Version{Major: 1, Minor: 9, Patch: 3, Ref: "v124"})
-					Expect(err).To(MatchError(ContainSubstring("no such file or directory")))
-				})
-			})
-
-			Context("when the patch version is invalid", func() {
-				It("returns an error", func() {
-					_, err := ps.BumpsFor(patcher.Version{Major: 1, Minor: 9, Patch: 3, Ref: "v124"})
-					Expect(err).To(MatchError("Invalid patch version: 3"))
 				})
 			})
 		})

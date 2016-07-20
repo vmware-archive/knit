@@ -25,8 +25,6 @@ type Changeset struct {
 
 type patchSet interface {
 	VersionsToApplyFor(version string) ([]Version, error)
-	PatchesFor(Version) (patches []string, err error)
-	BumpsFor(Version) (bumps map[string]string, err error)
 	SubmodulePatchesFor(Version) (submodulePatches map[string][]string, err error)
 }
 
@@ -59,11 +57,6 @@ func (p VersionsParser) GetCheckpoint() (Checkpoint, error) {
 	}
 
 	for _, version := range versionsToApply {
-		bumps, err := p.patchSet.BumpsFor(version)
-		if err != nil {
-			return Checkpoint{}, err
-		}
-
 		submodulePatches, err := p.patchSet.SubmodulePatchesFor(version)
 		if err != nil {
 			return Checkpoint{}, err
@@ -71,7 +64,7 @@ func (p VersionsParser) GetCheckpoint() (Checkpoint, error) {
 
 		checkpoint.Changes = append(checkpoint.Changes, Changeset{
 			Patches:          version.Patches,
-			Bumps:            bumps,
+			Bumps:            version.SubmoduleBumps,
 			SubmodulePatches: submodulePatches,
 		})
 	}

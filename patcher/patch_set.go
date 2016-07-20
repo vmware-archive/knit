@@ -20,11 +20,12 @@ func NewPatchSet(path string) PatchSet {
 }
 
 type Version struct {
-	Major   int
-	Minor   int
-	Patch   int
-	Ref     string
-	Patches []string
+	Major          int
+	Minor          int
+	Patch          int
+	Ref            string
+	Patches        []string
+	SubmoduleBumps map[string]string
 }
 
 func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
@@ -42,16 +43,21 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 	var currentVersion Version
 	for _, v := range startingVersions.Versions {
 		vers := Version{
-			Major: majorVersion,
-			Minor: minorVersion,
-			Patch: v.Version,
-			Ref:   v.Ref,
+			Major:          majorVersion,
+			Minor:          minorVersion,
+			Patch:          v.Version,
+			Ref:            v.Ref,
+			SubmoduleBumps: map[string]string{},
 		}
 
 		releaseDirName := fmt.Sprintf("%d.%d", majorVersion, minorVersion)
 
 		for _, patch := range v.Patches {
 			vers.Patches = append(vers.Patches, filepath.Join(ps.path, releaseDirName, patch))
+		}
+
+		for path, submodule := range v.Submodules {
+			vers.SubmoduleBumps[path] = submodule.Ref
 		}
 
 		if v.Version == patchVersion {
@@ -69,28 +75,6 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 	}
 
 	return versionsToApply, nil
-}
-
-func (ps PatchSet) PatchesFor(version Version) ([]string, error) {
-	return version.Patches, nil
-}
-
-func (ps PatchSet) BumpsFor(version Version) (map[string]string, error) {
-	startingVersions, err := ps.parseStartingVersionsFile(version.Major, version.Minor)
-	if err != nil {
-		return map[string]string{}, err
-	}
-
-	if version.Patch >= len(startingVersions.Versions) {
-		return map[string]string{}, fmt.Errorf("Invalid patch version: %d", version.Patch)
-	}
-
-	bumps := map[string]string{}
-	for path, submodule := range startingVersions.Versions[version.Patch].Submodules {
-		bumps[path] = submodule.Ref
-	}
-
-	return bumps, nil
 }
 
 func (ps PatchSet) SubmodulePatchesFor(version Version) (map[string][]string, error) {
