@@ -7,7 +7,7 @@ Currently, knit has only four flags.
 All of these flags are required:
 
 - `--repository-to-patch - path to the repository you would like to apply patches to`
-- `--patches-repository - path to the directory that contains your patches`
+- `--patch-repository - path to the directory that contains your patches`
 - `--version - the version you would like to jump to`
 
 Optionally you can specify:
@@ -18,7 +18,7 @@ Optionally you can specify:
 Run knit like so:
 
 ```
-knit --repository-to-patch /some/repository/cf-release --patches-repository /some/patches/repository/cf-release --version 1.7.2
+knit --repository-to-patch /some/repository/cf-release --patch-repository /some/patches/repository/cf-release --version 1.7.2
 ```
 
 pointing at a sub-directory in your patches repo that is an exact match for the repository-to-patch is VERY important
