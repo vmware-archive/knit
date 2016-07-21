@@ -82,22 +82,43 @@ var _ = Describe("Apply Patches", func() {
 		})
 	})
 
-	Context("error cases", func() {
-		Context("when the version specified has no starting version", func() {
-			It("returns an error", func() {
-				command := exec.Command(patcher,
-					"-repository-to-patch", releaseRepo,
-					"-patch-repository", patchesRepo,
-					"-version", "1.6.111222")
+	Context("when the version specified has no starting version", func() {
+		AfterEach(func() {
+			command := exec.Command("git", "checkout", "master")
+			command.Dir = releaseRepo
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10s").Should(gexec.Exit(0))
 
-				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
-				Eventually(session, "5m").Should(gexec.Exit(1))
-
-				Eventually(session.Err).Should(gbytes.Say(`Missing starting version "1.6.111222" in starting-versions.yml`))
-			})
+			command = exec.Command("git", "branch", "-D", "1.6.111222")
+			command.Dir = releaseRepo
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10s").Should(gexec.Exit(0))
 		})
 
+		It("works just fine", func() {
+			command := exec.Command(patcher,
+				"-repository-to-patch", releaseRepo,
+				"-patch-repository", patchesRepo,
+				"-version", "1.6.111222")
+
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "5m").Should(gexec.Exit(0))
+
+			command = exec.Command("git", "status")
+			command.Dir = releaseRepo
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(session, "30s").Should(gexec.Exit(0))
+			Expect(session.Out).To(gbytes.Say("On branch 1.6.111222"))
+			Expect(session.Out).To(gbytes.Say("nothing to commit"))
+		})
+	})
+
+	Context("error cases", func() {
 		Context("version branch already exists", func() {
 			BeforeEach(func() {
 				command := exec.Command("git", "checkout", "v222")

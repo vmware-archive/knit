@@ -15,8 +15,6 @@ const startingVersionsContent = `---
 starting_versions:
 - version: 0
   ref: 'v122'
-- version: 1
-  ref: 'v123'
 - version: 2
   ref: 'v124'
   patches:
@@ -107,6 +105,24 @@ var _ = Describe("PatchSet", func() {
 					},
 				},
 			}))
+		})
+
+		Context("when the specified version is not listed", func() {
+			It("returns a valid version list", func() {
+				versions, err := ps.VersionsToApplyFor("1.9.1")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(versions).To(Equal([]patcher.Version{
+					{
+						Major:            1,
+						Minor:            9,
+						Patch:            0,
+						Ref:              "v122",
+						SubmoduleBumps:   map[string]string{},
+						SubmodulePatches: map[string][]string{},
+					},
+				}))
+			})
 		})
 
 		Context("when an error occurs", func() {

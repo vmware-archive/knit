@@ -40,7 +40,7 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 	}
 
 	var versions []Version
-	var currentVersion Version
+	var effectiveVersion Version
 	for _, v := range startingVersions.Versions {
 		vers := Version{
 			Major:            majorVersion,
@@ -70,8 +70,8 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 			vers.SubmodulePatches[path] = submodulePatches
 		}
 
-		if v.Version == patchVersion {
-			currentVersion = vers
+		if v.Version <= patchVersion {
+			effectiveVersion = vers
 		}
 
 		versions = append(versions, vers)
@@ -79,7 +79,7 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 
 	var versionsToApply []Version
 	for _, v := range versions {
-		if v.Ref == currentVersion.Ref && v.Patch <= currentVersion.Patch {
+		if v.Ref == effectiveVersion.Ref && v.Patch <= effectiveVersion.Patch {
 			versionsToApply = append(versionsToApply, v)
 		}
 	}

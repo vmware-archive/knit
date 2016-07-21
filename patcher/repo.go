@@ -250,23 +250,22 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 }
 
 func (r Repo) CheckoutBranch(name string) error {
-	command := Command{
+	err := r.runner.Run(Command{
 		Args: []string{"rev-parse", "--verify", name},
 		Dir:  r.repo,
-	}
-
-	if err := r.runner.Run(command); err == nil {
+	})
+	if err == nil {
 		return fmt.Errorf("Branch %q already exists. Please delete it before trying again", name)
 	}
 
-	command = Command{
+	err = r.runner.Run(Command{
 		Args: []string{"checkout", "-b", name},
 		Dir:  r.repo,
-	}
-
-	if err := r.runner.Run(command); err != nil {
+	})
+	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
