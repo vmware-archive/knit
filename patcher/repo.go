@@ -72,7 +72,7 @@ func (r Repo) Checkout(checkoutRef string) error {
 			Dir:  r.repo,
 		},
 		Command{
-			Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
+			Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
 			Dir:  r.repo,
 		},
 	}
@@ -154,7 +154,7 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 			Dir:  pathToSubmodule,
 		},
 		Command{
-			Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
+			Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
 			Dir:  pathToSubmodule,
 		},
 		Command{

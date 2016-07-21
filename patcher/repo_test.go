@@ -112,7 +112,7 @@ var _ = Describe("Repo", func() {
 					Dir:  repoPath,
 				},
 				patcher.Command{
-					Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
+					Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
 					Dir:  repoPath,
 				},
 			}))
@@ -234,7 +234,7 @@ var _ = Describe("Repo", func() {
 					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
-					Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
+					Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
 					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
@@ -274,7 +274,7 @@ var _ = Describe("Repo", func() {
 					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
 				},
 				patcher.Command{
-					Args: []string{"submodule", "update", "--init", "--recursive", "--force"},
+					Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
 					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
 				},
 				patcher.Command{
