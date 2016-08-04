@@ -48,7 +48,7 @@ var _ = Describe("Apply Patches", func() {
 			Expect(session.Out).To(gbytes.Say("On branch 1.7.13"))
 			Expect(session.Out).To(gbytes.Say("nothing to commit"))
 
-			command = exec.Command("git", "log", "--pretty=format:%s", "-n", "10")
+			command = exec.Command("git", "log", "--pretty=format:%B", "-n", "13")
 			command.Dir = releaseRepo
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -56,6 +56,9 @@ var _ = Describe("Apply Patches", func() {
 			Eventually(session).Should(gexec.Exit(0))
 			Expect(session.Out).To(gbytes.Say(`Knit patch of src/loggregator`))
 			Expect(session.Out).To(gbytes.Say(`Knit bump of src/uaa-release`))
+			Expect(session.Out).To(gbytes.Say(`Submodule src/uaa-release`))
+			Expect(session.Out).To(gbytes.Say(`> Create final release 11.3`))
+			Expect(session.Out).To(gbytes.Say(`> Bump UAA to 3.3.0.3`))
 			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
 			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
 			Expect(session.Out).To(gbytes.Say(`Knit bump of src/consul-release`))
@@ -64,6 +67,11 @@ var _ = Describe("Apply Patches", func() {
 			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
 			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release`))
 			Expect(session.Out).To(gbytes.Say(`Update nginx to 1.11.1`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/loggregator`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/loggregator`))
+			Expect(session.Out).To(gbytes.Say(`Knit bump of src/loggregator`))
+			Expect(session.Out).To(gbytes.Say(`Submodule src/loggregator`))
+			Expect(session.Out).To(gbytes.Say(`> Knit bump of src/github.com/cloudfoundry/noaa`))
 		})
 
 		It("does not print any logs when --quiet flag is provided", func() {
@@ -79,6 +87,9 @@ var _ = Describe("Apply Patches", func() {
 			Eventually(session).Should(gexec.Exit(0))
 			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/loggregator`))
 			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/uaa-release`))
+			Expect(session.Out).NotTo(gbytes.Say(`Submodule src/uaa-release`))
+			Expect(session.Out).NotTo(gbytes.Say(`> Create final release 11.3`))
+			Expect(session.Out).NotTo(gbytes.Say(`> Bump UAA to 3.3.0.3`))
 			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
 			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
 			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/consul-release`))
@@ -87,6 +98,11 @@ var _ = Describe("Apply Patches", func() {
 			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
 			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/capi-release`))
 			Expect(session.Out).NotTo(gbytes.Say(`Update nginx to 1.11.1`))
+			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/loggregator`))
+			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/loggregator`))
+			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/loggregator`))
+			Expect(session.Out).NotTo(gbytes.Say(`Submodule src/loggregator`))
+			Expect(session.Out).NotTo(gbytes.Say(`> Knit bump of src/github.com/cloudfoundry/noaa`))
 		})
 	})
 

@@ -7,8 +7,9 @@ import (
 )
 
 type Command struct {
-	Args []string
-	Dir  string
+	Args       []string
+	Dir        string
+	Executable string
 }
 
 type CommandRunner struct {
@@ -55,6 +56,10 @@ func (r CommandRunner) Run(command Command) error {
 		Dir:    command.Dir,
 		Stdout: r.Stdout,
 		Stderr: r.Stderr,
+	}
+
+	if command.Executable != "" {
+		cmd.Path = command.Executable
 	}
 
 	err := cmd.Run()
