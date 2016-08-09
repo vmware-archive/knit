@@ -58,13 +58,6 @@ var _ = Describe("Apply", func() {
 			Expect(repo.CheckoutCall.Receives.Ref).To(Equal("abcde12345"))
 		})
 
-		It("cleans the submodules of the workspace", func() {
-			err := apply.Checkpoint(checkpoint)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(repo.CleanSubmodulesCall.Count).To(Equal(1))
-		})
-
 		It("checks out a new branch from the initial ref", func() {
 			err := apply.Checkpoint(checkpoint)
 			Expect(err).NotTo(HaveOccurred())
@@ -106,7 +99,6 @@ var _ = Describe("Apply", func() {
 					Expect(err).To(MatchError("meow"))
 
 					Expect(repo.CheckoutCall.Receives.Ref).To(BeEmpty())
-					Expect(repo.CleanSubmodulesCall.Count).To(Equal(0))
 					Expect(repo.CheckoutBranchCall.Receives.Name).To(Equal(""))
 					Expect(repo.ApplyPatchCall.Receives.Patches).To(BeEmpty())
 					Expect(repo.BumpSubmoduleCall.Receives.Submodules).To(BeEmpty())
@@ -117,21 +109,6 @@ var _ = Describe("Apply", func() {
 			Context("when checkout fails", func() {
 				It("returns an error", func() {
 					repo.CheckoutCall.Returns.Error = errors.New("meow")
-
-					err := apply.Checkpoint(checkpoint)
-					Expect(err).To(MatchError("meow"))
-
-					Expect(repo.CleanSubmodulesCall.Count).To(Equal(0))
-					Expect(repo.CheckoutBranchCall.Receives.Name).To(BeEmpty())
-					Expect(repo.ApplyPatchCall.Receives.Patches).To(BeEmpty())
-					Expect(repo.BumpSubmoduleCall.Receives.Submodules).To(BeEmpty())
-					Expect(repo.PatchSubmoduleCall.Receives.Paths).To(BeEmpty())
-				})
-			})
-
-			Context("when clean submodules fails", func() {
-				It("returns an error", func() {
-					repo.CleanSubmodulesCall.Returns.Error = errors.New("meow")
 
 					err := apply.Checkpoint(checkpoint)
 					Expect(err).To(MatchError("meow"))

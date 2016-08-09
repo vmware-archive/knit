@@ -10,7 +10,6 @@ type repository interface {
 	ConfigureCommitter() error
 	Checkout(checkoutRef string) error
 	CheckoutBranch(name string) error
-	CleanSubmodules() error
 	ApplyPatch(patch string) error
 	BumpSubmodule(path, sha string) error
 	PatchSubmodule(path string, patch string) error
@@ -29,11 +28,6 @@ func (a Apply) Checkpoint(checkpoint Checkpoint) error {
 	}
 
 	err = a.repo.Checkout(checkpoint.CheckoutRef)
-	if err != nil {
-		return err
-	}
-
-	err = a.repo.CleanSubmodules()
 	if err != nil {
 		return err
 	}

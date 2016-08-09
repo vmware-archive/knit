@@ -75,34 +75,14 @@ func (r Repo) Checkout(checkoutRef string) error {
 			Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
 			Dir:  r.repo,
 		},
+		Command{
+			Args: []string{"submodule", "foreach", "--recursive", "git clean -ffd"},
+			Dir:  r.repo,
+		},
 	}
 
 	for _, command := range commands {
 
-		if err := r.runner.Run(command); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (r Repo) CleanSubmodules() error {
-	submodules, err := r.submodules()
-	if err != nil {
-		return err
-	}
-
-	var commands = []Command{}
-	for _, submodule := range submodules {
-		command := Command{
-			Args: []string{"clean", "-ffd"},
-			Dir:  submodule,
-		}
-		commands = append(commands, command)
-	}
-
-	for _, command := range commands {
 		if err := r.runner.Run(command); err != nil {
 			return err
 		}
@@ -156,6 +136,10 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 		Command{
 			Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
 			Dir:  pathToSubmodule,
+		},
+		Command{
+			Args: []string{"submodule", "foreach", "--recursive", "git clean -ffd"},
+			Dir:  r.repo,
 		},
 		Command{
 			Args: []string{"clean", "-ffd"},

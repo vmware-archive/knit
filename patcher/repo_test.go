@@ -13,27 +13,11 @@ import (
 	"github.com/pivotal-cf-experimental/knit/patcher/fakes"
 )
 
-const gitModulesContent = `
-[submodule "src/module1"]
-	path = src/module-one
-	url = https://example.com/module-incubator/module-one.git
-[submodule "src/module2"]
-	path = src/module-two
-	url = https://example.com/module-incubator/module-two.git
-[submodule "src/module3"]
-	path = src/module-three
-	url = https://example.com/module-incubator/module-three.git
-[submodule "src/whoops/does/not/exist"]
-	path = src/whoops/does/not/exist
-	url = https://example.com/module-incubator/module-three.git
-`
-
 var _ = Describe("Repo", func() {
 	var (
-		runner                *fakes.CommandRunner
-		repoPath              string
-		repoSubmoduleFilepath string
-		r                     patcher.Repo
+		runner   *fakes.CommandRunner
+		repoPath string
+		r        patcher.Repo
 	)
 
 	BeforeEach(func() {
@@ -48,10 +32,6 @@ var _ = Describe("Repo", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
-		repoSubmoduleFilepath = filepath.Join(repoPath, ".gitmodules")
-
-		err = ioutil.WriteFile(repoSubmoduleFilepath, []byte(gitModulesContent), 0666)
-		Expect(err).NotTo(HaveOccurred())
 		r = patcher.NewRepo(runner, repoPath, "testbot", "foo@example.com")
 	})
 
@@ -115,6 +95,10 @@ var _ = Describe("Repo", func() {
 					Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
 					Dir:  repoPath,
 				},
+				patcher.Command{
+					Args: []string{"submodule", "foreach", "--recursive", "git clean -ffd"},
+					Dir:  repoPath,
+				},
 			}))
 		})
 
@@ -123,64 +107,6 @@ var _ = Describe("Repo", func() {
 				It("returns an error", func() {
 					runner.RunCall.Returns.Errors = []error{errors.New("some error")}
 					err := r.Checkout("invalid-ref")
-					Expect(err).To(MatchError("some error"))
-				})
-			})
-		})
-	})
-
-	Describe("CleanSubmodules", func() {
-		It("cleans all of the submodule dirs", func() {
-			err := r.CleanSubmodules()
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
-				patcher.Command{
-					Args: []string{"clean", "-ffd"},
-					Dir:  filepath.Join(repoPath, "src", "module-one"),
-				},
-				patcher.Command{
-					Args: []string{"clean", "-ffd"},
-					Dir:  filepath.Join(repoPath, "src", "module-two"),
-				},
-				patcher.Command{
-					Args: []string{"clean", "-ffd"},
-					Dir:  filepath.Join(repoPath, "src", "module-three"),
-				},
-			}))
-		})
-
-		Context("when the .gitmodules file does not exist", func() {
-			BeforeEach(func() {
-				err := os.Remove(repoSubmoduleFilepath)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			It("is a no-op", func() {
-				err := r.CleanSubmodules()
-				Expect(err).NotTo(HaveOccurred())
-				Expect(runner.RunCall.Receives.Commands).To(HaveLen(0))
-			})
-		})
-
-		Context("failure cases", func() {
-			Context("when the .gitmodules file cannot be read", func() {
-				BeforeEach(func() {
-					err := os.Chmod(repoSubmoduleFilepath, 0000)
-					Expect(err).NotTo(HaveOccurred())
-				})
-
-				It("returns an error", func() {
-					err := r.CleanSubmodules()
-					Expect(err).To(MatchError(ContainSubstring("permission denied")))
-				})
-			})
-
-			Context("when one of the clean command calls fails", func() {
-				It("returns an error", func() {
-					runner.RunCall.Returns.Errors = []error{nil, errors.New("some error"), nil}
-					err := r.CleanSubmodules()
-					Expect(runner.RunCall.Count).To(Equal(2))
 					Expect(err).To(MatchError("some error"))
 				})
 			})
@@ -238,6 +164,10 @@ var _ = Describe("Repo", func() {
 					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
+					Args: []string{"submodule", "foreach", "--recursive", "git clean -ffd"},
+					Dir:  repoPath,
+				},
+				patcher.Command{
 					Args: []string{"clean", "-ffd"},
 					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
@@ -276,6 +206,10 @@ var _ = Describe("Repo", func() {
 				patcher.Command{
 					Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
 					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
+				},
+				patcher.Command{
+					Args: []string{"submodule", "foreach", "--recursive", "git clean -ffd"},
+					Dir:  repoPath,
 				},
 				patcher.Command{
 					Args: []string{"clean", "-ffd"},

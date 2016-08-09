@@ -17,13 +17,6 @@ type Repository struct {
 		}
 	}
 
-	CleanSubmodulesCall struct {
-		Count   int
-		Returns struct {
-			Error error
-		}
-	}
-
 	ApplyPatchCall struct {
 		Receives struct {
 			Patches []string
@@ -72,12 +65,6 @@ func (r *Repository) Checkout(checkoutRef string) error {
 	r.CheckoutCall.Receives.Ref = checkoutRef
 
 	return r.CheckoutCall.Returns.Error
-}
-
-func (r *Repository) CleanSubmodules() error {
-	r.CleanSubmodulesCall.Count++
-
-	return r.CleanSubmodulesCall.Returns.Error
 }
 
 func (r *Repository) ApplyPatch(patch string) error {
