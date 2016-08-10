@@ -9,7 +9,10 @@ import (
 	"strings"
 )
 
-const modulePrefix = "path = "
+const (
+	modulePrefix          = "path = "
+	submoduleMessageRegex = `^.*is in submodule '(.*)'`
+)
 
 type commandRunner interface {
 	Run(command Command) (err error)
@@ -82,7 +85,6 @@ func (r Repo) Checkout(checkoutRef string) error {
 	}
 
 	for _, command := range commands {
-
 		if err := r.runner.Run(command); err != nil {
 			return err
 		}
@@ -190,8 +192,7 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 	}
 
 	if output, err := r.runner.CombinedOutput(addCommand); err != nil {
-		//TODO take this one out as a constant
-		re := regexp.MustCompile(`^.*is in submodule '(.*)'`)
+		re := regexp.MustCompile(submoduleMessageRegex)
 		submodulePath := re.FindStringSubmatch(string(output))[1]
 		absoluteSubmodulePath := filepath.Join(r.repo, submodulePath)
 
