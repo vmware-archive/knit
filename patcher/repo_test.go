@@ -176,7 +176,17 @@ var _ = Describe("Repo", func() {
 					Dir:  repoPath,
 				},
 				patcher.Command{
-					Args: []string{"commit", "-m", "Knit bump of src/some/path", "--no-verify"},
+					Args:       []string{"-c", "echo \"Knit bump of src/some/path\n\" > " + filepath.Join(os.TempDir(), "knit-submodule-commit-message")},
+					Dir:        repoPath,
+					Executable: "/bin/bash",
+				},
+				patcher.Command{
+					Args:       []string{"-c", "git --no-pager diff --staged --submodule >> " + filepath.Join(os.TempDir(), "knit-submodule-commit-message")},
+					Dir:        repoPath,
+					Executable: "/bin/bash",
+				},
+				patcher.Command{
+					Args: []string{"commit", "-F", filepath.Join(os.TempDir(), "knit-submodule-commit-message"), "--no-verify"},
 					Dir:  repoPath,
 				},
 			}))
@@ -220,15 +230,35 @@ var _ = Describe("Repo", func() {
 					Dir:  filepath.Join(repoPath, "src/some/path"),
 				},
 				patcher.Command{
-					Args: []string{"commit", "-m", "Knit bump of src/some/other/path", "--no-verify"},
-					Dir:  filepath.Join(repoPath, "src/some/path"),
+					Args:       []string{"-c", "echo \"Knit bump of src/some/other/path\n\" > " + filepath.Join(os.TempDir(), "knit-submodule-commit-message")},
+					Dir:        filepath.Join(repoPath, "src", "some", "path"),
+					Executable: "/bin/bash",
+				},
+				patcher.Command{
+					Args:       []string{"-c", "git --no-pager diff --staged --submodule >> " + filepath.Join(os.TempDir(), "knit-submodule-commit-message")},
+					Dir:        filepath.Join(repoPath, "src", "some", "path"),
+					Executable: "/bin/bash",
+				},
+				patcher.Command{
+					Args: []string{"commit", "-F", filepath.Join(os.TempDir(), "knit-submodule-commit-message"), "--no-verify"},
+					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
 					Args: []string{"add", "-A", "src/some/path"},
 					Dir:  repoPath,
 				},
 				patcher.Command{
-					Args: []string{"commit", "-m", "Knit bump of src/some/path", "--no-verify"},
+					Args:       []string{"-c", "echo \"Knit bump of src/some/path\n\" > " + filepath.Join(os.TempDir(), "knit-submodule-commit-message")},
+					Dir:        filepath.Join(repoPath, "src", "some", "path"),
+					Executable: "/bin/bash",
+				},
+				patcher.Command{
+					Args:       []string{"-c", "git --no-pager diff --staged --submodule >> " + filepath.Join(os.TempDir(), "knit-submodule-commit-message")},
+					Dir:        repoPath,
+					Executable: "/bin/bash",
+				},
+				patcher.Command{
+					Args: []string{"commit", "-F", filepath.Join(os.TempDir(), "knit-submodule-commit-message"), "--no-verify"},
 					Dir:  repoPath,
 				},
 			}))

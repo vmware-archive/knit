@@ -20,18 +20,20 @@ type commandRunner interface {
 }
 
 type Repo struct {
-	runner         commandRunner
-	repo           string
-	committerName  string
-	committerEmail string
+	runner            commandRunner
+	repo              string
+	committerName     string
+	committerEmail    string
+	commitMessagePath string
 }
 
 func NewRepo(commandRunner commandRunner, repo string, committerName, committerEmail string) Repo {
 	return Repo{
-		runner:         commandRunner,
-		repo:           repo,
-		committerName:  committerName,
-		committerEmail: committerEmail,
+		runner:            commandRunner,
+		repo:              repo,
+		committerName:     committerName,
+		committerEmail:    committerEmail,
+		commitMessagePath: filepath.Join(os.TempDir(), "knit-submodule-commit-message"),
 	}
 }
 
@@ -152,19 +154,41 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 			Dir:  pathToRepo,
 		},
 		Command{
-			Args: []string{"commit", "-m", fmt.Sprintf("Knit bump of %s", path), "--no-verify"},
+			Args:       []string{"-c", fmt.Sprintf("echo \"Knit bump of %s\n\" > %s", path, r.commitMessagePath)},
+			Dir:        pathToRepo,
+			Executable: "/bin/bash",
+		},
+		Command{
+			Args:       []string{"-c", "git --no-pager diff --staged --submodule >> " + r.commitMessagePath},
+			Dir:        pathToRepo,
+			Executable: "/bin/bash",
+		},
+		Command{
+			Args: []string{"commit", "-F", r.commitMessagePath, "--no-verify"},
 			Dir:  pathToRepo,
 		},
 	}
 
 	if len(matches) == 3 {
-		commands = append(commands, Command{
-			Args: []string{"add", "-A", matches[1]},
-			Dir:  r.repo,
-		}, Command{
-			Args: []string{"commit", "-m", fmt.Sprintf("Knit bump of %s", matches[1]), "--no-verify"},
-			Dir:  r.repo,
-		})
+		commands = append(commands,
+			Command{
+				Args: []string{"add", "-A", matches[1]},
+				Dir:  r.repo,
+			},
+			Command{
+				Args:       []string{"-c", fmt.Sprintf("echo \"Knit bump of %s\n\" > %s", matches[1], r.commitMessagePath)},
+				Dir:        pathToRepo,
+				Executable: "/bin/bash",
+			},
+			Command{
+				Args:       []string{"-c", "git --no-pager diff --staged --submodule >> " + r.commitMessagePath},
+				Dir:        r.repo,
+				Executable: "/bin/bash",
+			},
+			Command{
+				Args: []string{"commit", "-F", r.commitMessagePath, "--no-verify"},
+				Dir:  r.repo,
+			})
 	}
 
 	for _, command := range commands {
