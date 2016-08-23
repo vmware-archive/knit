@@ -78,6 +78,10 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 				v.Patches = append(v.Patches, v.Hotfixes[hotfixVersion].Patches...)
 
 				for path, submodule := range v.Hotfixes[hotfixVersion].Submodules {
+					if v.Submodules == nil {
+						v.Submodules = make(map[string]Submodule)
+					}
+
 					if _, ok := v.Submodules[path]; !ok {
 						v.Submodules[path] = Submodule{}
 					}

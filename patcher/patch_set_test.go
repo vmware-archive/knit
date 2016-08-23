@@ -37,6 +37,13 @@ starting_versions:
           ref: magic-fake-sha-1
           patches:
           - Sub-Magic.patch
+- version: 3
+  ref: 'v124'
+  hotfixes:
+    "urgent":
+      submodules:
+        "src/magic-fake-sub":
+          ref: magic-fake-sha-1
 `
 
 var _ = Describe("PatchSet", func() {
@@ -137,38 +144,48 @@ var _ = Describe("PatchSet", func() {
 		})
 
 		Context("when a hotfix version is requested", func() {
-			It("includes the hotfix patches in the response", func() {
-				versions, err := ps.VersionsToApplyFor("1.9.2+something.else")
-				Expect(err).NotTo(HaveOccurred())
+			Context("when there are existing patches for the vanilla patch release", func() {
+				It("includes the hotfix patches in the response", func() {
+					versions, err := ps.VersionsToApplyFor("1.9.2+something.else")
+					Expect(err).NotTo(HaveOccurred())
 
-				Expect(versions).To(Equal([]patcher.Version{
-					{
-						Major: 1,
-						Minor: 9,
-						Patch: 2,
-						Ref:   "v124",
-						Patches: []string{
-							filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
-							filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
-							filepath.Join(patchesRepo, "1.9", "Top-88.patch"),
-						},
-						SubmoduleBumps: map[string]string{
-							"src/fake-sub-1":     "fake-sha-1",
-							"src/magic-fake-sub": "magic-fake-sha-1",
-						},
-						SubmodulePatches: map[string][]string{
-							"src/fake-sub-1": {
-								filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
+					Expect(versions).To(Equal([]patcher.Version{
+						{
+							Major: 1,
+							Minor: 9,
+							Patch: 2,
+							Ref:   "v124",
+							Patches: []string{
+								filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
+								filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
+								filepath.Join(patchesRepo, "1.9", "Top-88.patch"),
 							},
-							"src/fake-sub-2": {
-								filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
+							SubmoduleBumps: map[string]string{
+								"src/fake-sub-1":     "fake-sha-1",
+								"src/magic-fake-sub": "magic-fake-sha-1",
 							},
-							"src/magic-fake-sub": {
-								filepath.Join(patchesRepo, "1.9", "Sub-Magic.patch"),
+							SubmodulePatches: map[string][]string{
+								"src/fake-sub-1": {
+									filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
+								},
+								"src/fake-sub-2": {
+									filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
+								},
+								"src/magic-fake-sub": {
+									filepath.Join(patchesRepo, "1.9", "Sub-Magic.patch"),
+								},
 							},
 						},
-					},
-				}))
+					}))
+				})
+			})
+
+			Context("when there are no existing patches for the vanilla patch release", func() {
+				It("includes the hotfix patches in the response", func() {
+					Expect(func() {
+						ps.VersionsToApplyFor("1.9.3+urgent")
+					}).NotTo(Panic())
+				})
 			})
 		})
 
