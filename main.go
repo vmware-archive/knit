@@ -2,11 +2,15 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"os"
 	"os/exec"
 
 	"github.com/pivotal-cf-experimental/knit/patcher"
 )
+
+var buildVersion string
 
 func main() {
 	var (
@@ -14,13 +18,24 @@ func main() {
 		patchesRepository string
 		version           string
 		quiet             bool
+		showBuildVersion  bool
 	)
 
 	flag.StringVar(&releaseRepository, "repository-to-patch", "", "")
 	flag.StringVar(&patchesRepository, "patch-repository", "", "")
 	flag.StringVar(&version, "version", "", "")
 	flag.BoolVar(&quiet, "quiet", false, "")
+	flag.BoolVar(&showBuildVersion, "v", false, "")
 	flag.Parse()
+
+	if showBuildVersion {
+		if buildVersion == "" {
+			buildVersion = "dev"
+		}
+
+		fmt.Printf("Knit version: %s\n", buildVersion)
+		os.Exit(0)
+	}
 
 	var missingFlag string
 	switch {
