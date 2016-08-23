@@ -48,7 +48,7 @@ var _ = Describe("Apply Patches", func() {
 			Expect(session.Out).To(gbytes.Say("On branch 1.6.15"))
 			Expect(session.Out).To(gbytes.Say("nothing to commit"))
 
-			command = exec.Command("git", "log", "--pretty=format:%s", "-n", "8")
+			command = exec.Command("git", "log", "--format=%s", "-n", "8")
 			command.Dir = releaseRepo
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -115,6 +115,108 @@ var _ = Describe("Apply Patches", func() {
 			Eventually(session, "30s").Should(gexec.Exit(0))
 			Expect(session.Out).To(gbytes.Say("On branch 1.6.111222"))
 			Expect(session.Out).To(gbytes.Say("nothing to commit"))
+		})
+	})
+
+	Context("when the version specified indicates a hotfix release", func() {
+		AfterEach(func() {
+			command := exec.Command("git", "checkout", "master")
+			command.Dir = releaseRepo
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10s").Should(gexec.Exit(0))
+
+			command = exec.Command("git", "branch", "-D", "1.7.11+ipsec.uptime")
+			command.Dir = releaseRepo
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10s").Should(gexec.Exit(0))
+		})
+
+		It("applies the hotfix patches on top of the vanilla patches", func() {
+			command := exec.Command(patcher,
+				"-repository-to-patch", releaseRepo,
+				"-patch-repository", patchesRepo,
+				"-version", "1.7.11+ipsec.uptime")
+
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "5m").Should(gexec.Exit(0))
+
+			command = exec.Command("git", "status")
+			command.Dir = releaseRepo
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(session, "30s").Should(gexec.Exit(0))
+			Expect(session.Out).To(gbytes.Say(`On branch 1\.7\.11\+ipsec\.uptime`))
+			Expect(session.Out).To(gbytes.Say("nothing to commit"))
+
+			command = exec.Command("git", "log", "--format=%s", "-n", "8")
+			command.Dir = releaseRepo
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(session).Should(gexec.Exit(0))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/github.com/cloudfoundry/gorouter`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/github.com/cloudfoundry/gorouter`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/github.com/cloudfoundry-incubator/route-registrar`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release`))
+			Expect(session.Out).To(gbytes.Say(`Update nginx to 1.11.1`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/loggregator`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/loggregator`))
+		})
+	})
+
+	Context("when the version specified bypasses a hotfix release", func() {
+		AfterEach(func() {
+			command := exec.Command("git", "checkout", "master")
+			command.Dir = releaseRepo
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10s").Should(gexec.Exit(0))
+
+			command = exec.Command("git", "branch", "-D", "1.7.12")
+			command.Dir = releaseRepo
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10s").Should(gexec.Exit(0))
+		})
+
+		It("does not apply the hotfix patches from the previous release", func() {
+			command := exec.Command(patcher,
+				"-repository-to-patch", releaseRepo,
+				"-patch-repository", patchesRepo,
+				"-version", "1.7.12")
+
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "5m").Should(gexec.Exit(0))
+
+			command = exec.Command("git", "status")
+			command.Dir = releaseRepo
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(session, "30s").Should(gexec.Exit(0))
+			Expect(session.Out).To(gbytes.Say("On branch 1.7.12"))
+			Expect(session.Out).To(gbytes.Say("nothing to commit"))
+
+			command = exec.Command("git", "log", "--format=%s", "-n", "8")
+			command.Dir = releaseRepo
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+
+			Eventually(session).Should(gexec.Exit(0))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
+			Expect(session.Out).To(gbytes.Say(`Knit bump of src/consul-release`))
+			Expect(session.Out).To(gbytes.Say(`Bump src/consul-release`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/github.com/cloudfoundry/gorouter`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
+			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release`))
+			Expect(session.Out).To(gbytes.Say(`Update nginx to 1.11.1`))
 		})
 	})
 

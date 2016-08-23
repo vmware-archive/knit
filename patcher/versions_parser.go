@@ -2,15 +2,6 @@ package patcher
 
 import "fmt"
 
-type StartingVersions struct {
-	Versions []struct {
-		Version    int
-		Ref        string
-		Submodules map[string]Submodule
-		Patches    []string
-	} `yaml:"starting_versions"`
-}
-
 type Checkpoint struct {
 	Changes     []Changeset
 	CheckoutRef string
@@ -25,11 +16,6 @@ type Changeset struct {
 
 type patchSet interface {
 	VersionsToApplyFor(version string) ([]Version, error)
-}
-
-type Submodule struct {
-	Ref     string
-	Patches []string
 }
 
 type VersionsParser struct {

@@ -77,6 +77,43 @@ var _ = Describe("VersionsParser", func() {
 			Expect(patchSet.VersionsToApplyForCall.Receives.Version).To(Equal("1.9.2"))
 		})
 
+		Context("when the version includes a hotfix", func() {
+			BeforeEach(func() {
+				vp = patcher.NewVersionsParser("3.2.1+something.else", patchSet)
+			})
+
+			It("returns the appropriate checkpoint of the patches repository", func() {
+				patchSet.VersionsToApplyForCall.Returns.Versions = []patcher.Version{
+					{
+						Major:            3,
+						Minor:            2,
+						Patch:            1,
+						Ref:              "v124",
+						SubmoduleBumps:   map[string]string{},
+						Patches:          []string{},
+						SubmodulePatches: map[string][]string{},
+					},
+				}
+
+				checkpoint, err := vp.GetCheckpoint()
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(checkpoint).To(Equal(patcher.Checkpoint{
+					Changes: []patcher.Changeset{
+						{
+							Patches:          []string{},
+							Bumps:            map[string]string{},
+							SubmodulePatches: map[string][]string{},
+						},
+					},
+					CheckoutRef: "v124",
+					FinalBranch: "3.2.1+something.else",
+				}))
+
+				Expect(patchSet.VersionsToApplyForCall.Receives.Version).To(Equal("3.2.1+something.else"))
+			})
+		})
+
 		Context("when an error occurs", func() {
 			Context("when the patchset fails to find versions", func() {
 				It("returns an error", func() {

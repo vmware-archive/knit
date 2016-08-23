@@ -28,6 +28,15 @@ starting_versions:
     "src/fake-sub-2":
       patches:
       - Sub-2.patch
+  hotfixes:
+    "something.else":
+      patches:
+      - Top-88.patch
+      submodules:
+        "src/magic-fake-sub":
+          ref: magic-fake-sha-1
+          patches:
+          - Sub-Magic.patch
 `
 
 var _ = Describe("PatchSet", func() {
@@ -59,6 +68,8 @@ var _ = Describe("PatchSet", func() {
 			filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
 			filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
 			filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
+			filepath.Join(patchesRepo, "1.9", "Top-88.patch"),
+			filepath.Join(patchesRepo, "1.9", "Sub-Magic.patch"),
 		}
 
 		for _, file := range files {
@@ -125,6 +136,42 @@ var _ = Describe("PatchSet", func() {
 			})
 		})
 
+		Context("when a hotfix version is requested", func() {
+			It("includes the hotfix patches in the response", func() {
+				versions, err := ps.VersionsToApplyFor("1.9.2+something.else")
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(versions).To(Equal([]patcher.Version{
+					{
+						Major: 1,
+						Minor: 9,
+						Patch: 2,
+						Ref:   "v124",
+						Patches: []string{
+							filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
+							filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
+							filepath.Join(patchesRepo, "1.9", "Top-88.patch"),
+						},
+						SubmoduleBumps: map[string]string{
+							"src/fake-sub-1":     "fake-sha-1",
+							"src/magic-fake-sub": "magic-fake-sha-1",
+						},
+						SubmodulePatches: map[string][]string{
+							"src/fake-sub-1": {
+								filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
+							},
+							"src/fake-sub-2": {
+								filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
+							},
+							"src/magic-fake-sub": {
+								filepath.Join(patchesRepo, "1.9", "Sub-Magic.patch"),
+							},
+						},
+					},
+				}))
+			})
+		})
+
 		Context("when an error occurs", func() {
 			Context("when the starting-versions file does not exist", func() {
 				BeforeEach(func() {
@@ -153,6 +200,13 @@ var _ = Describe("PatchSet", func() {
 				It("returns an error", func() {
 					_, err := ps.VersionsToApplyFor("1.9.2")
 					Expect(err).To(MatchError("yaml: could not find expected directive name"))
+				})
+			})
+
+			Context("when the hotfix version does not exist", func() {
+				It("returns an error", func() {
+					_, err := ps.VersionsToApplyFor("1.9.2+does.not.exist")
+					Expect(err).To(MatchError(`Hotfix not found: "does.not.exist"`))
 				})
 			})
 		})

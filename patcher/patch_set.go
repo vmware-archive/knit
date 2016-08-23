@@ -10,6 +10,26 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type StartingVersions struct {
+	Versions []struct {
+		Version    int
+		Ref        string
+		Submodules map[string]Submodule
+		Patches    []string
+		Hotfixes   map[string]Hotfix
+	} `yaml:"starting_versions"`
+}
+
+type Submodule struct {
+	Ref     string
+	Patches []string
+}
+
+type Hotfix struct {
+	Patches    []string
+	Submodules map[string]Submodule
+}
+
 type PatchSet struct {
 	path string
 }
@@ -29,7 +49,7 @@ type Version struct {
 }
 
 func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
-	majorVersion, minorVersion, patchVersion, err := ps.parseVersion(version)
+	majorVersion, minorVersion, patchVersion, hotfixVersion, err := ps.parseVersion(version)
 	if err != nil {
 		return nil, err
 	}
@@ -53,6 +73,30 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 
 		releaseDirName := fmt.Sprintf("%d.%d", majorVersion, minorVersion)
 
+		if v.Version == patchVersion && hotfixVersion != "" {
+			if _, ok := v.Hotfixes[hotfixVersion]; ok {
+				v.Patches = append(v.Patches, v.Hotfixes[hotfixVersion].Patches...)
+
+				for path, submodule := range v.Hotfixes[hotfixVersion].Submodules {
+					if _, ok := v.Submodules[path]; !ok {
+						v.Submodules[path] = Submodule{}
+					}
+
+					hotfixRef := v.Submodules[path].Ref
+					if submodule.Ref != "" {
+						hotfixRef = submodule.Ref
+					}
+
+					v.Submodules[path] = Submodule{
+						Ref:     hotfixRef,
+						Patches: append(v.Submodules[path].Patches, submodule.Patches...),
+					}
+				}
+			} else {
+				return nil, fmt.Errorf("Hotfix not found: %q", hotfixVersion)
+			}
+		}
+
 		for _, patch := range v.Patches {
 			vers.Patches = append(vers.Patches, filepath.Join(ps.path, releaseDirName, patch))
 		}
@@ -67,6 +111,7 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 			for _, patch := range submodule.Patches {
 				submodulePatches = append(submodulePatches, filepath.Join(ps.path, releaseDirName, patch))
 			}
+
 			vers.SubmodulePatches[path] = submodulePatches
 		}
 
@@ -87,24 +132,31 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 	return versionsToApply, nil
 }
 
-func (ps PatchSet) parseVersion(version string) (int, int, int, error) {
-	versionParts := strings.Split(version, ".")
+func (ps PatchSet) parseVersion(version string) (int, int, int, string, error) {
+	hotfixParts := strings.Split(version, "+")
+
+	versionParts := strings.Split(hotfixParts[0], ".")
 	majorVersion, err := strconv.Atoi(versionParts[0])
 	if err != nil {
-		return -1, -1, -1, err
+		return -1, -1, -1, "", err
 	}
 
 	minorVersion, err := strconv.Atoi(versionParts[1])
 	if err != nil {
-		return -1, -1, -1, err
+		return -1, -1, -1, "", err
 	}
 
 	patchVersion, err := strconv.Atoi(versionParts[2])
 	if err != nil {
-		return -1, -1, -1, err
+		return -1, -1, -1, "", err
 	}
 
-	return majorVersion, minorVersion, patchVersion, nil
+	var hotfixVersion string
+	if len(hotfixParts) > 1 {
+		hotfixVersion = hotfixParts[1]
+	}
+
+	return majorVersion, minorVersion, patchVersion, hotfixVersion, nil
 }
 
 func (ps PatchSet) parseStartingVersionsFile(majorVersion, minorVersion int) (StartingVersions, error) {
