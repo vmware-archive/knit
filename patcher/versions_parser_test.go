@@ -46,6 +46,13 @@ var _ = Describe("VersionsParser", func() {
 							"bar-1.patch",
 						},
 					},
+					SubmoduleAdditions: map[string]patcher.SubmoduleAddition{
+						"src/baz": patcher.SubmoduleAddition{
+							URL:    "fake-url",
+							Ref:    "fake-ref",
+							Branch: "fake-branch",
+						},
+					},
 				},
 			}
 
@@ -66,6 +73,13 @@ var _ = Describe("VersionsParser", func() {
 							},
 							"src/bar": {
 								"bar-1.patch",
+							},
+						},
+						SubmoduleAdditions: map[string]patcher.SubmoduleAddition{
+							"src/baz": patcher.SubmoduleAddition{
+								URL:    "fake-url",
+								Ref:    "fake-ref",
+								Branch: "fake-branch",
 							},
 						},
 					},

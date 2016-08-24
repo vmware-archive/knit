@@ -1,5 +1,7 @@
 package fakes
 
+import "github.com/pivotal-cf-experimental/knit/patcher"
+
 type Repository struct {
 	ConfigureCommitterCall struct {
 		Count   int
@@ -20,6 +22,15 @@ type Repository struct {
 	ApplyPatchCall struct {
 		Receives struct {
 			Patches []string
+		}
+		Returns struct {
+			Error error
+		}
+	}
+
+	AddSubmoduleCall struct {
+		Receives struct {
+			Submodules map[string]patcher.SubmoduleAddition
 		}
 		Returns struct {
 			Error error
@@ -71,6 +82,20 @@ func (r *Repository) ApplyPatch(patch string) error {
 	r.ApplyPatchCall.Receives.Patches = append(r.ApplyPatchCall.Receives.Patches, patch)
 
 	return r.ApplyPatchCall.Returns.Error
+}
+
+func (r *Repository) AddSubmodule(patchPath, url, ref, branch string) error {
+	if len(r.AddSubmoduleCall.Receives.Submodules) == 0 {
+		r.AddSubmoduleCall.Receives.Submodules = make(map[string]patcher.SubmoduleAddition)
+	}
+
+	r.AddSubmoduleCall.Receives.Submodules[patchPath] = patcher.SubmoduleAddition{
+		URL:    url,
+		Ref:    ref,
+		Branch: branch,
+	}
+
+	return r.AddSubmoduleCall.Returns.Error
 }
 
 func (r *Repository) BumpSubmodule(patchPath, sha string) error {

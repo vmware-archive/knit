@@ -11,26 +11,39 @@ import (
 )
 
 var (
-	patcher     string
-	releaseRepo string
-	patchesRepo string
+	patcher          string
+	cfReleaseRepo    string
+	cfPatchesDir     string
+	diegoReleaseRepo string
+	diegoPatchesDir  string
 )
 
 var _ = BeforeSuite(func() {
 	var err error
 	patcher, err = gexec.Build("github.com/pivotal-cf-experimental/knit")
+	Expect(err).NotTo(HaveOccurred())
 
-	releaseRepo = os.Getenv("CF_RELEASE_DIR")
-	patchesRepo = os.Getenv("PCF_PATCHES_DIR")
+	cfReleaseRepo = os.Getenv("CF_RELEASE_DIR")
+	cfPatchesDir = os.Getenv("CF_PATCHES_DIR")
 
-	if releaseRepo == "" {
+	diegoReleaseRepo = os.Getenv("DIEGO_RELEASE_DIR")
+	diegoPatchesDir = os.Getenv("DIEGO_PATCHES_DIR")
+
+	if cfReleaseRepo == "" {
 		Fail("CF_RELEASE_DIR is a required env var")
 	}
 
-	if patchesRepo == "" {
-		Fail("PCF_PATCHES_DIR is a required env var")
+	if cfPatchesDir == "" {
+		Fail("CF_PATCHES_DIR is a required env var")
 	}
-	Expect(err).NotTo(HaveOccurred())
+
+	if diegoReleaseRepo == "" {
+		Fail("DIEGO_RELEASE_DIR is a required env var")
+	}
+
+	if diegoPatchesDir == "" {
+		Fail("DIEGO_PATCHES_DIR is a required env var")
+	}
 })
 
 var _ = AfterSuite(func() {

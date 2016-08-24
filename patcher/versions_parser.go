@@ -9,9 +9,10 @@ type Checkpoint struct {
 }
 
 type Changeset struct {
-	Patches          []string
-	Bumps            map[string]string
-	SubmodulePatches map[string][]string
+	Patches            []string
+	Bumps              map[string]string
+	SubmodulePatches   map[string][]string
+	SubmoduleAdditions map[string]SubmoduleAddition
 }
 
 type patchSet interface {
@@ -44,9 +45,10 @@ func (p VersionsParser) GetCheckpoint() (Checkpoint, error) {
 
 	for _, version := range versionsToApply {
 		checkpoint.Changes = append(checkpoint.Changes, Changeset{
-			Patches:          version.Patches,
-			Bumps:            version.SubmoduleBumps,
-			SubmodulePatches: version.SubmodulePatches,
+			Patches:            version.Patches,
+			Bumps:              version.SubmoduleBumps,
+			SubmodulePatches:   version.SubmodulePatches,
+			SubmoduleAdditions: version.SubmoduleAdditions,
 		})
 	}
 

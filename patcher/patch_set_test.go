@@ -28,6 +28,11 @@ starting_versions:
     "src/fake-sub-2":
       patches:
       - Sub-2.patch
+    "src/fake-new-sub":
+      add:
+        ref: fake-sha-3
+        url: fake-url
+        branch: fake-branch
   hotfixes:
     "something.else":
       patches:
@@ -121,6 +126,13 @@ var _ = Describe("PatchSet", func() {
 							filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
 						},
 					},
+					SubmoduleAdditions: map[string]patcher.SubmoduleAddition{
+						"src/fake-new-sub": patcher.SubmoduleAddition{
+							URL:    "fake-url",
+							Ref:    "fake-sha-3",
+							Branch: "fake-branch",
+						},
+					},
 				},
 			}))
 		})
@@ -132,12 +144,13 @@ var _ = Describe("PatchSet", func() {
 
 				Expect(versions).To(Equal([]patcher.Version{
 					{
-						Major:            1,
-						Minor:            9,
-						Patch:            0,
-						Ref:              "v122",
-						SubmoduleBumps:   map[string]string{},
-						SubmodulePatches: map[string][]string{},
+						Major:              1,
+						Minor:              9,
+						Patch:              0,
+						Ref:                "v122",
+						SubmoduleBumps:     map[string]string{},
+						SubmodulePatches:   map[string][]string{},
+						SubmoduleAdditions: map[string]patcher.SubmoduleAddition{},
 					},
 				}))
 			})
@@ -173,6 +186,13 @@ var _ = Describe("PatchSet", func() {
 								},
 								"src/magic-fake-sub": {
 									filepath.Join(patchesRepo, "1.9", "Sub-Magic.patch"),
+								},
+							},
+							SubmoduleAdditions: map[string]patcher.SubmoduleAddition{
+								"src/fake-new-sub": patcher.SubmoduleAddition{
+									URL:    "fake-url",
+									Ref:    "fake-sha-3",
+									Branch: "fake-branch",
 								},
 							},
 						},
@@ -224,6 +244,27 @@ var _ = Describe("PatchSet", func() {
 				It("returns an error", func() {
 					_, err := ps.VersionsToApplyFor("1.9.2+does.not.exist")
 					Expect(err).To(MatchError(`Hotfix not found: "does.not.exist"`))
+				})
+			})
+
+			Context("when a new submodule is added without a ref", func() {
+				BeforeEach(func() {
+					err := ioutil.WriteFile(startingVersionsYAML, []byte(`
+---					
+starting_versions:
+- version: 2
+  ref: 'v124'
+  submodules:
+    "src/fake-new-sub":
+      add:
+        url: fake-url,
+        branch: fake-branch`), 0644)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("returns an error", func() {
+					_, err := ps.VersionsToApplyFor("1.9.2")
+					Expect(err).To(MatchError(`Missing ref for new submodule: "src/fake-new-sub"`))
 				})
 			})
 		})

@@ -27,6 +27,13 @@ var _ = Describe("Apply", func() {
 					SubmodulePatches: map[string][]string{
 						"src/sub/path": []string{"path/to/other.patch"},
 					},
+					SubmoduleAdditions: map[string]patcher.SubmoduleAddition{
+						"src/fake/sub": patcher.SubmoduleAddition{
+							URL:    "fake-url",
+							Ref:    "fake-ref",
+							Branch: "fake-branch",
+						},
+					},
 				},
 				{
 					Patches: []string{"patch-2"},
@@ -36,6 +43,7 @@ var _ = Describe("Apply", func() {
 					SubmodulePatches: map[string][]string{
 						"src/some-other-sub/path": []string{"path/to/different.patch"},
 					},
+					SubmoduleAdditions: map[string]patcher.SubmoduleAddition{},
 				},
 			},
 			CheckoutRef: "abcde12345",
@@ -72,6 +80,19 @@ var _ = Describe("Apply", func() {
 			Expect(repo.ApplyPatchCall.Receives.Patches).To(Equal([]string{"patch-1", "patch-2"}))
 		})
 
+		It("add the new submodules", func() {
+			err := apply.Checkpoint(checkpoint)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(repo.AddSubmoduleCall.Receives.Submodules).To(Equal(map[string]patcher.SubmoduleAddition{
+				"src/fake/sub": patcher.SubmoduleAddition{
+					URL:    "fake-url",
+					Ref:    "fake-ref",
+					Branch: "fake-branch",
+				},
+			}))
+		})
+
 		It("bumps the submodules", func() {
 			err := apply.Checkpoint(checkpoint)
 			Expect(err).NotTo(HaveOccurred())
@@ -101,6 +122,7 @@ var _ = Describe("Apply", func() {
 					Expect(repo.CheckoutCall.Receives.Ref).To(BeEmpty())
 					Expect(repo.CheckoutBranchCall.Receives.Name).To(Equal(""))
 					Expect(repo.ApplyPatchCall.Receives.Patches).To(BeEmpty())
+					Expect(repo.AddSubmoduleCall.Receives.Submodules).To(BeEmpty())
 					Expect(repo.BumpSubmoduleCall.Receives.Submodules).To(BeEmpty())
 					Expect(repo.PatchSubmoduleCall.Receives.Paths).To(BeEmpty())
 				})
@@ -115,6 +137,7 @@ var _ = Describe("Apply", func() {
 
 					Expect(repo.CheckoutBranchCall.Receives.Name).To(BeEmpty())
 					Expect(repo.ApplyPatchCall.Receives.Patches).To(BeEmpty())
+					Expect(repo.AddSubmoduleCall.Receives.Submodules).To(BeEmpty())
 					Expect(repo.BumpSubmoduleCall.Receives.Submodules).To(BeEmpty())
 					Expect(repo.PatchSubmoduleCall.Receives.Paths).To(BeEmpty())
 				})
@@ -128,6 +151,7 @@ var _ = Describe("Apply", func() {
 					Expect(err).To(MatchError("meow"))
 
 					Expect(repo.ApplyPatchCall.Receives.Patches).To(BeEmpty())
+					Expect(repo.AddSubmoduleCall.Receives.Submodules).To(BeEmpty())
 					Expect(repo.BumpSubmoduleCall.Receives.Submodules).To(BeEmpty())
 					Expect(repo.PatchSubmoduleCall.Receives.Paths).To(BeEmpty())
 				})
@@ -140,6 +164,18 @@ var _ = Describe("Apply", func() {
 					err := apply.Checkpoint(checkpoint)
 					Expect(err).To(MatchError("meow"))
 
+					Expect(repo.AddSubmoduleCall.Receives.Submodules).To(BeEmpty())
+					Expect(repo.BumpSubmoduleCall.Receives.Submodules).To(BeEmpty())
+					Expect(repo.PatchSubmoduleCall.Receives.Paths).To(BeEmpty())
+				})
+			})
+
+			Context("when adding a submodule fails", func() {
+				It("returns an error", func() {
+					repo.AddSubmoduleCall.Returns.Error = errors.New("meow")
+
+					err := apply.Checkpoint(checkpoint)
+					Expect(err).To(MatchError("meow"))
 					Expect(repo.BumpSubmoduleCall.Receives.Submodules).To(BeEmpty())
 					Expect(repo.PatchSubmoduleCall.Receives.Paths).To(BeEmpty())
 				})

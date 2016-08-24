@@ -11,6 +11,7 @@ type repository interface {
 	Checkout(checkoutRef string) error
 	CheckoutBranch(name string) error
 	ApplyPatch(patch string) error
+	AddSubmodule(path, url, ref, branch string) error
 	BumpSubmodule(path, sha string) error
 	PatchSubmodule(path string, patch string) error
 }
@@ -40,6 +41,13 @@ func (a Apply) Checkpoint(checkpoint Checkpoint) error {
 	for _, change := range checkpoint.Changes {
 		for _, patch := range change.Patches {
 			err := a.repo.ApplyPatch(patch)
+			if err != nil {
+				return err
+			}
+		}
+
+		for path, addition := range change.SubmoduleAdditions {
+			err := a.repo.AddSubmodule(path, addition.URL, addition.Ref, addition.Branch)
 			if err != nil {
 				return err
 			}

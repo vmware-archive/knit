@@ -137,6 +137,98 @@ var _ = Describe("Repo", func() {
 		})
 	})
 
+	Describe("AddSubmodule", func() {
+		It("adds the submodule from the provided URL at the provided ref", func() {
+			err := r.AddSubmodule("src/some/path", "some-url", "a-sha", "fake-branch")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
+				patcher.Command{
+					Args: []string{"submodule", "add", "--force", "-b", "fake-branch", "some-url", "src/some/path"},
+					Dir:  repoPath,
+				},
+				patcher.Command{
+					Args: []string{"checkout", "a-sha"},
+					Dir:  filepath.Join(repoPath, "src", "some", "path"),
+				},
+				patcher.Command{
+					Args: []string{"submodule", "sync", "--recursive"},
+					Dir:  filepath.Join(repoPath, "src", "some", "path"),
+				},
+				patcher.Command{
+					Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
+					Dir:  filepath.Join(repoPath, "src", "some", "path"),
+				},
+				patcher.Command{
+					Args: []string{"submodule", "foreach", "--recursive", "git clean -ffd"},
+					Dir:  repoPath,
+				},
+				patcher.Command{
+					Args: []string{"clean", "-ffd"},
+					Dir:  filepath.Join(repoPath, "src", "some", "path"),
+				},
+				patcher.Command{
+					Args: []string{"add", "-A", "src/some/path"},
+					Dir:  repoPath,
+				},
+				patcher.Command{
+					Args: []string{"commit", "-m", "Knit addition of src/some/path", "--no-verify"},
+					Dir:  repoPath,
+				},
+			}))
+		})
+
+		Context("when a branch is not specified for the new submodule", func() {
+			It("omits the branch parameter from the git submodule add command", func() {
+				err := r.AddSubmodule("src/some/path", "some-url", "a-sha", "")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
+					patcher.Command{
+						Args: []string{"submodule", "add", "--force", "some-url", "src/some/path"},
+						Dir:  repoPath,
+					},
+					patcher.Command{
+						Args: []string{"checkout", "a-sha"},
+						Dir:  filepath.Join(repoPath, "src", "some", "path"),
+					},
+					patcher.Command{
+						Args: []string{"submodule", "sync", "--recursive"},
+						Dir:  filepath.Join(repoPath, "src", "some", "path"),
+					},
+					patcher.Command{
+						Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
+						Dir:  filepath.Join(repoPath, "src", "some", "path"),
+					},
+					patcher.Command{
+						Args: []string{"submodule", "foreach", "--recursive", "git clean -ffd"},
+						Dir:  repoPath,
+					},
+					patcher.Command{
+						Args: []string{"clean", "-ffd"},
+						Dir:  filepath.Join(repoPath, "src", "some", "path"),
+					},
+					patcher.Command{
+						Args: []string{"add", "-A", "src/some/path"},
+						Dir:  repoPath,
+					},
+					patcher.Command{
+						Args: []string{"commit", "-m", "Knit addition of src/some/path", "--no-verify"},
+						Dir:  repoPath,
+					},
+				}))
+			})
+		})
+
+		Context("when an error occurs", func() {
+			Context("when the command fails", func() {
+				It("returns an error", func() {
+					runner.RunCall.Returns.Errors = []error{errors.New("meow")}
+					err := r.AddSubmodule("src/some/path", "some-url", "a-sha", "")
+					Expect(err).To(MatchError("meow"))
+				})
+			})
+		})
+	})
+
 	Describe("BumpSubmodule", func() {
 		It("bumps the given submodule to the provided sha", func() {
 			err := r.BumpSubmodule("src/some/path", "a-sha")

@@ -23,6 +23,13 @@ type StartingVersions struct {
 type Submodule struct {
 	Ref     string
 	Patches []string
+	Add     SubmoduleAddition
+}
+
+type SubmoduleAddition struct {
+	URL    string
+	Ref    string
+	Branch string
 }
 
 type Hotfix struct {
@@ -39,13 +46,14 @@ func NewPatchSet(path string) PatchSet {
 }
 
 type Version struct {
-	Major            int
-	Minor            int
-	Patch            int
-	Ref              string
-	Patches          []string
-	SubmoduleBumps   map[string]string
-	SubmodulePatches map[string][]string
+	Major              int
+	Minor              int
+	Patch              int
+	Ref                string
+	Patches            []string
+	SubmoduleBumps     map[string]string
+	SubmodulePatches   map[string][]string
+	SubmoduleAdditions map[string]SubmoduleAddition
 }
 
 func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
@@ -63,12 +71,13 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 	var effectiveVersion Version
 	for _, v := range startingVersions.Versions {
 		vers := Version{
-			Major:            majorVersion,
-			Minor:            minorVersion,
-			Patch:            v.Version,
-			Ref:              v.Ref,
-			SubmoduleBumps:   map[string]string{},
-			SubmodulePatches: map[string][]string{},
+			Major:              majorVersion,
+			Minor:              minorVersion,
+			Patch:              v.Version,
+			Ref:                v.Ref,
+			SubmoduleBumps:     map[string]string{},
+			SubmodulePatches:   map[string][]string{},
+			SubmoduleAdditions: map[string]SubmoduleAddition{},
 		}
 
 		releaseDirName := fmt.Sprintf("%d.%d", majorVersion, minorVersion)
@@ -116,7 +125,17 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 				submodulePatches = append(submodulePatches, filepath.Join(ps.path, releaseDirName, patch))
 			}
 
-			vers.SubmodulePatches[path] = submodulePatches
+			if len(submodulePatches) > 0 {
+				vers.SubmodulePatches[path] = submodulePatches
+			}
+
+			if submodule.Add.URL != "" {
+				if submodule.Add.Ref == "" {
+					return nil, fmt.Errorf("Missing ref for new submodule: %q", path)
+				}
+
+				vers.SubmoduleAdditions[path] = submodule.Add
+			}
 		}
 
 		if v.Version <= patchVersion {

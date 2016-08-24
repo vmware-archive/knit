@@ -107,6 +107,60 @@ func (r Repo) ApplyPatch(patch string) error {
 	return nil
 }
 
+func (r Repo) AddSubmodule(path, url, ref, branch string) error {
+	var submoduleAddArgs []string
+	pathToSubmodule := filepath.Join(r.repo, path)
+
+	if branch != "" {
+		submoduleAddArgs = []string{"submodule", "add", "--force", "-b", branch, url, path}
+	} else {
+		submoduleAddArgs = []string{"submodule", "add", "--force", url, path}
+	}
+
+	commands := []Command{
+		Command{
+			Args: submoduleAddArgs,
+			Dir:  r.repo,
+		},
+		Command{
+			Args: []string{"checkout", ref},
+			Dir:  pathToSubmodule,
+		},
+		Command{
+			Args: []string{"submodule", "sync", "--recursive"},
+			Dir:  pathToSubmodule,
+		},
+		Command{
+			Args: []string{"submodule", "update", "--init", "--recursive", "--force", "--jobs=4"},
+			Dir:  pathToSubmodule,
+		},
+		Command{
+			Args: []string{"submodule", "foreach", "--recursive", "git clean -ffd"},
+			Dir:  r.repo,
+		},
+		Command{
+			Args: []string{"clean", "-ffd"},
+			Dir:  pathToSubmodule,
+		},
+		Command{
+			Args: []string{"add", "-A", path},
+			Dir:  r.repo,
+		},
+		Command{
+			Args: []string{"commit", "-m", fmt.Sprintf("Knit addition of %s", path), "--no-verify"},
+			Dir:  r.repo,
+		},
+	}
+
+	for _, command := range commands {
+		if err := r.runner.Run(command); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (r Repo) BumpSubmodule(path, sha string) error {
 	pathToSubmodule := filepath.Join(r.repo, path)
 	pathToRepo := r.repo
