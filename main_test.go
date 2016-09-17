@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
@@ -367,6 +368,49 @@ var _ = Describe("Apply Patches", func() {
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(session, "1m").Should(gexec.Exit(1))
 				Expect(session.Err).To(gbytes.Say(`"git": executable file not found in \$PATH`))
+			})
+		})
+
+		Context("when the git executable is too old", func() {
+			var (
+				path     string
+				fakePath string
+			)
+
+			BeforeEach(func() {
+				var err error
+				fakePath, err = ioutil.TempDir("", "")
+				Expect(err).NotTo(HaveOccurred())
+
+				fakeGit, err := os.Create(filepath.Join(fakePath, "git"))
+				Expect(err).NotTo(HaveOccurred())
+
+				_, err = fakeGit.WriteString("#!/bin/bash\necho \"2.8.0\"")
+				Expect(err).NotTo(HaveOccurred())
+
+				err = fakeGit.Chmod(0700)
+				Expect(err).NotTo(HaveOccurred())
+
+				path = os.Getenv("PATH")
+				os.Setenv("PATH", fakePath)
+			})
+
+			AfterEach(func() {
+				os.Setenv("PATH", path)
+
+				err := os.RemoveAll(fakePath)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("exists with exit status 1", func() {
+				command := exec.Command(patcher,
+					"-repository-to-patch", cfReleaseRepo,
+					"-patch-repository", cfPatchesDir,
+					"-version", "1.6.15")
+				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(session, "1m").Should(gexec.Exit(1))
+				Expect(session.Err).To(gbytes.Say("knit requires a version of git >= 2.9.0"))
 			})
 		})
 	})
