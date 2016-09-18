@@ -89,7 +89,11 @@ func checkGitVersion(runner patcher.CommandRunner) error {
 	out, err := runner.CombinedOutput(patcher.Command{
 		Args: []string{"--version"},
 	})
-	matches := regexp.MustCompile(`.*(\d\.\d\.\d).*`).FindStringSubmatch(string(out))
+	if err != nil {
+		return fmt.Errorf("could not determine `git` version: %s", err)
+	}
+
+	matches := regexp.MustCompile(`.*(\d+\.\d+\.\d+).*`).FindStringSubmatch(string(out))
 	if len(matches) < 2 {
 		return errors.New("could not determine `git` version")
 	}

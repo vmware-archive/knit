@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -385,14 +386,17 @@ var _ = Describe("Apply Patches", func() {
 				fakeGit, err := os.Create(filepath.Join(fakePath, "git"))
 				Expect(err).NotTo(HaveOccurred())
 
-				_, err = fakeGit.WriteString("#!/bin/bash\necho \"2.8.0\"")
+				_, err = fakeGit.WriteString("#!/bin/bash\necho \"git version 2.8.0\"")
 				Expect(err).NotTo(HaveOccurred())
 
 				err = fakeGit.Chmod(0700)
 				Expect(err).NotTo(HaveOccurred())
 
+				err = fakeGit.Close()
+				Expect(err).NotTo(HaveOccurred())
+
 				path = os.Getenv("PATH")
-				os.Setenv("PATH", fakePath)
+				os.Setenv("PATH", fmt.Sprintf("%s:%s", fakePath, path))
 			})
 
 			AfterEach(func() {
