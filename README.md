@@ -1,4 +1,6 @@
 # knit
+![Learning to knit](http://66.media.tumblr.com/tumblr_mcza9u6hux1rtgmslo1_500.gif)
+
 A tool that allows you to apply a series of git patches / submodule bumps to a specified repository
 
 ## knit flags
