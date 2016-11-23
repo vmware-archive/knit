@@ -66,6 +66,25 @@ var _ = Describe("Apply Patches", func() {
 			Expect(session.Out).To(gbytes.Say(`Knit patch of src/uaa`))
 		})
 
+		It("creates a file with a generated version of the thing it patched", func() {
+			file, err := ioutil.TempFile("", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			command := exec.Command(patcher,
+				"-repository-to-patch", cfReleaseRepo,
+				"-patch-repository", cfPatchesDir,
+				"-version", "1.6.15",
+				"-resulting-version-file", file.Name(),
+			)
+
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10m").Should(gexec.Exit(0))
+			resultingVersion, err := ioutil.ReadAll(file)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(resultingVersion)).To(Equal("225-1.6.15"))
+		})
+
 		It("does not print any logs when --quiet flag is provided", func() {
 			command := exec.Command(patcher,
 				"-repository-to-patch", cfReleaseRepo,

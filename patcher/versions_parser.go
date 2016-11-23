@@ -3,9 +3,10 @@ package patcher
 import "fmt"
 
 type Checkpoint struct {
-	Changes     []Changeset
-	CheckoutRef string
-	FinalBranch string
+	Changes          []Changeset
+	CheckoutRef      string
+	FinalBranch      string
+	ResultingVersion string
 }
 
 type Changeset struct {
@@ -54,6 +55,7 @@ func (p VersionsParser) GetCheckpoint() (Checkpoint, error) {
 
 	checkpoint.CheckoutRef = versionsToApply[0].Ref
 	checkpoint.FinalBranch = p.version
+	checkpoint.ResultingVersion = fmt.Sprintf("%s-%s", versionsToApply[0].Ref, p.version)
 
 	return checkpoint, nil
 }

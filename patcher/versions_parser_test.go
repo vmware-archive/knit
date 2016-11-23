@@ -84,8 +84,9 @@ var _ = Describe("VersionsParser", func() {
 						},
 					},
 				},
-				CheckoutRef: "v124",
-				FinalBranch: "1.9.2",
+				CheckoutRef:      "v124",
+				FinalBranch:      "1.9.2",
+				ResultingVersion: "v124-1.9.2",
 			}))
 
 			Expect(patchSet.VersionsToApplyForCall.Receives.Version).To(Equal("1.9.2"))
@@ -120,8 +121,9 @@ var _ = Describe("VersionsParser", func() {
 							SubmodulePatches: map[string][]string{},
 						},
 					},
-					CheckoutRef: "v124",
-					FinalBranch: "3.2.1+something.else",
+					CheckoutRef:      "v124",
+					FinalBranch:      "3.2.1+something.else",
+					ResultingVersion: "v124-3.2.1+something.else",
 				}))
 
 				Expect(patchSet.VersionsToApplyForCall.Receives.Version).To(Equal("3.2.1+something.else"))
