@@ -2,6 +2,7 @@ package patcher_test
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -428,7 +429,7 @@ var _ = Describe("Repo", func() {
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
-					Args: []string{"rev-parse", "--verify", branchName},
+					Args: []string{"rev-parse", "--verify", fmt.Sprintf("refs/heads/%s", branchName)},
 					Dir:  repoPath,
 				},
 				patcher.Command{

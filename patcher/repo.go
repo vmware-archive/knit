@@ -290,7 +290,7 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 
 func (r Repo) CheckoutBranch(name string) error {
 	err := r.runner.Run(Command{
-		Args: []string{"rev-parse", "--verify", name},
+		Args: []string{"rev-parse", "--verify", fmt.Sprintf("refs/heads/%s", name)},
 		Dir:  r.repo,
 	})
 	if err == nil {
