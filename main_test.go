@@ -49,8 +49,8 @@ var _ = Describe("Apply Patches", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(session.Out).To(gbytes.Say("On branch 1.6.15"))
-			Expect(session.Out).To(gbytes.Say("nothing to commit"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.6.15"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("nothing to commit"))
 
 			command = exec.Command("git", "log", "--format=%s", "-n", "8")
 			command.Dir = cfReleaseRepo
@@ -58,12 +58,12 @@ var _ = Describe("Apply Patches", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session).Should(gexec.Exit(0))
-			Expect(session.Out).To(gbytes.Say(`Knit bump of src/uaa`))
-			Expect(session.Out).To(gbytes.Say(`Knit bump of src/etcd-release`))
-			Expect(session.Out).To(gbytes.Say(`Knit bump of src/consul-release`))
-			Expect(session.Out).To(gbytes.Say(`add golang 1\.5\.3 to main blobs\.yml, needed by new consul release.*`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/uaa`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/uaa`))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/uaa"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/etcd-release"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/consul-release"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("add golang 1.5.3 to main blobs.yml, needed by new consul release"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/uaa"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/uaa"))
 		})
 
 		It("does not print any logs when --quiet flag is provided", func() {
@@ -80,7 +80,7 @@ var _ = Describe("Apply Patches", func() {
 			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/uaa`))
 			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/etcd-release`))
 			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/consul-release`))
-			Expect(session.Out).NotTo(gbytes.Say(`add golang 1\.5\.3 to main blobs\.yml, needed by new consul release.*`))
+			Expect(session.Out).NotTo(gbytes.Say(`add golang 1\.5\.3 to main blobs\.yml, needed by new consul release`))
 			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/uaa`))
 			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/uaa`))
 		})
@@ -117,8 +117,8 @@ var _ = Describe("Apply Patches", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(session.Out).To(gbytes.Say("On branch 1.6.111222"))
-			Expect(session.Out).To(gbytes.Say("nothing to commit"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.6.111222"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("nothing to commit"))
 		})
 	})
 
@@ -153,8 +153,8 @@ var _ = Describe("Apply Patches", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(session.Out).To(gbytes.Say(`On branch 1\.7\.11\+ipsec\.uptime`))
-			Expect(session.Out).To(gbytes.Say("nothing to commit"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.7.11+ipsec.uptime"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("nothing to commit"))
 
 			command = exec.Command("git", "log", "--format=%s", "-n", "8")
 			command.Dir = cfReleaseRepo
@@ -162,14 +162,14 @@ var _ = Describe("Apply Patches", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session).Should(gexec.Exit(0))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/github.com/cloudfoundry/gorouter`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/github.com/cloudfoundry/gorouter`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/github.com/cloudfoundry-incubator/route-registrar`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release`))
-			Expect(session.Out).To(gbytes.Say(`Update nginx to 1.11.1`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/loggregator`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/loggregator`))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/github.com/cloudfoundry/gorouter"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/github.com/cloudfoundry/gorouter"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/github.com/cloudfoundry-incubator/route-registrar"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release/src/cloud_controller_ng"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Update nginx to 1.11.1"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/loggregator"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/loggregator"))
 		})
 	})
 
@@ -204,8 +204,8 @@ var _ = Describe("Apply Patches", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(session.Out).To(gbytes.Say("On branch 1.7.12"))
-			Expect(session.Out).To(gbytes.Say("nothing to commit"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.7.12"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("nothing to commit"))
 
 			command = exec.Command("git", "log", "--format=%s", "-n", "8")
 			command.Dir = cfReleaseRepo
@@ -213,14 +213,14 @@ var _ = Describe("Apply Patches", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session).Should(gexec.Exit(0))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
-			Expect(session.Out).To(gbytes.Say(`Knit bump of src/consul-release`))
-			Expect(session.Out).To(gbytes.Say(`Bump src/consul-release`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/github.com/cloudfoundry/gorouter`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release/src/cloud_controller_ng`))
-			Expect(session.Out).To(gbytes.Say(`Knit patch of src/capi-release`))
-			Expect(session.Out).To(gbytes.Say(`Update nginx to 1.11.1`))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release/src/cloud_controller_ng"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release/src/cloud_controller_ng"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/consul-release"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Bump src/consul-release"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/github.com/cloudfoundry/gorouter"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release/src/cloud_controller_ng"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Update nginx to 1.11.1"))
 		})
 	})
 
@@ -249,8 +249,8 @@ var _ = Describe("Apply Patches", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session, "5m").Should(gexec.Exit(0))
 
-			Expect(session.Out).To(gbytes.Say(`Knit addition of src/github.com/nats-io/nats`))
-			Expect(session.Out).To(gbytes.Say(`Knit addition of src/github.com/nats-io/nuid`))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit addition of src/github.com/nats-io/nats"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit addition of src/github.com/nats-io/nuid"))
 
 			gitModulesContents, err := ioutil.ReadFile(path.Join(diegoReleaseRepo, ".gitmodules"))
 			Expect(err).NotTo(HaveOccurred())
@@ -267,7 +267,7 @@ var _ = Describe("Apply Patches", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(session.Out).To(gbytes.Say("c0ad3f079763c06c3ce94ad12fa3f17e78966d99"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("c0ad3f079763c06c3ce94ad12fa3f17e78966d99"))
 
 			command = exec.Command("git", "rev-parse", "HEAD")
 			command.Dir = path.Join(diegoReleaseRepo, "src/github.com/nats-io/nuid")
@@ -275,7 +275,7 @@ var _ = Describe("Apply Patches", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(session.Out).To(gbytes.Say("a5152d67cf63cbfb5d992a395458722a45194715"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("a5152d67cf63cbfb5d992a395458722a45194715"))
 		})
 	})
 
