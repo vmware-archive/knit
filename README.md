@@ -51,6 +51,8 @@ starting_versions:
 - version: 2
   ref: "v235"
   submodules:
-    "src/uaa-release": jas4374357afasdfkgasfkdga890989080989
-    "src/capi-release/src/cloud_controller_ng": jas4374357afasdfkgasfkddsjfghj888328748723874
+    "src/uaa-release":
+      ref: "jas4374357afasdfkgasfkdga890989080989"
+    "src/capi-release/src/cloud_controller_ng":
+      ref: "57afasdfkgasfkddsjfghj888328748723874"
 ```
