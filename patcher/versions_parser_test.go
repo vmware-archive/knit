@@ -53,6 +53,7 @@ var _ = Describe("VersionsParser", func() {
 							Branch: "fake-branch",
 						},
 					},
+					SubmoduleRemovals: []string{"some/fake/path"},
 				},
 			}
 
@@ -82,6 +83,7 @@ var _ = Describe("VersionsParser", func() {
 								Branch: "fake-branch",
 							},
 						},
+						SubmoduleRemovals: []string{"some/fake/path"},
 					},
 				},
 				CheckoutRef: "v124",

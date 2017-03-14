@@ -34,6 +34,10 @@ var _ = Describe("Apply", func() {
 							Branch: "fake-branch",
 						},
 					},
+					SubmoduleRemovals: []string{
+						"src/some-old-submodule",
+						"src/other-unneeded-submodule",
+					},
 				},
 				{
 					Patches: []string{"patch-2"},
@@ -91,6 +95,13 @@ var _ = Describe("Apply", func() {
 					Branch: "fake-branch",
 				},
 			}))
+		})
+
+		It("removes the specified submodules", func() {
+			err := apply.Checkpoint(checkpoint)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(repo.RemoveSubmoduleCall.Receives.Paths).To(Equal([]string{"src/some-old-submodule", "src/other-unneeded-submodule"}))
 		})
 
 		It("bumps the submodules", func() {
@@ -173,6 +184,18 @@ var _ = Describe("Apply", func() {
 			Context("when adding a submodule fails", func() {
 				It("returns an error", func() {
 					repo.AddSubmoduleCall.Returns.Error = errors.New("meow")
+
+					err := apply.Checkpoint(checkpoint)
+					Expect(err).To(MatchError("meow"))
+					Expect(repo.BumpSubmoduleCall.Receives.Submodules).To(BeEmpty())
+					Expect(repo.PatchSubmoduleCall.Receives.Paths).To(BeEmpty())
+					Expect(repo.RemoveSubmoduleCall.Receives.Paths).To(BeEmpty())
+				})
+			})
+
+			Context("when removing a submodule fails", func() {
+				It("returns an error", func() {
+					repo.RemoveSubmoduleCall.Returns.Error = errors.New("meow")
 
 					err := apply.Checkpoint(checkpoint)
 					Expect(err).To(MatchError("meow"))

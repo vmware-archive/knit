@@ -279,6 +279,42 @@ var _ = Describe("Apply Patches", func() {
 		})
 	})
 
+	Context("when the version specified removes an old submodule", func() {
+		AfterEach(func() {
+			command := exec.Command("git", "checkout", "master")
+			command.Dir = cfReleaseRepo
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10s").Should(gexec.Exit(0))
+
+			command = exec.Command("git", "branch", "-D", "1.8.35")
+			command.Dir = cfReleaseRepo
+			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10s").Should(gexec.Exit(0))
+		})
+
+		It("removes the old submodule", func() {
+			command := exec.Command(patcher,
+				"-repository-to-patch", cfReleaseRepo,
+				"-patch-repository", cfPatchesDir,
+				"-version", "1.8.35")
+
+			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session, "10m").Should(gexec.Exit(0))
+
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Submodule 'src/buildpacks' (https://github.com/cloudfoundry/buildpack-releases) unregistered for path 'src/buildpacks'"))
+
+			gitModulesContents, err := ioutil.ReadFile(path.Join(cfReleaseRepo, ".gitmodules"))
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(string(gitModulesContents)).NotTo(ContainSubstring("src/buildpacks"))
+
+			Expect(path.Join(cfReleaseRepo, "src/buildpacks")).NotTo(BeADirectory())
+		})
+	})
+
 	Context("error cases", func() {
 		Context("version branch already exists", func() {
 			BeforeEach(func() {

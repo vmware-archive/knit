@@ -161,6 +161,34 @@ func (r Repo) AddSubmodule(path, url, ref, branch string) error {
 	return nil
 }
 
+func (r Repo) RemoveSubmodule(path string) error {
+	submoduleDeinitArgs := []string{"submodule", "deinit", "-f", path}
+	submoduleRemoveArgs := []string{"rm", "-f", path}
+
+	commands := []Command{
+		Command{
+			Args: submoduleDeinitArgs,
+			Dir:  r.repo,
+		},
+		Command{
+			Args: submoduleRemoveArgs,
+			Dir:  r.repo,
+		},
+		Command{
+			Args: []string{"commit", "-m", fmt.Sprintf("Knit removal of submodule '%s'", path), "--no-verify"},
+			Dir:  r.repo,
+		},
+	}
+
+	for _, command := range commands {
+		if err := r.runner.Run(command); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (r Repo) BumpSubmodule(path, sha string) error {
 	pathToSubmodule := filepath.Join(r.repo, path)
 	pathToRepo := r.repo

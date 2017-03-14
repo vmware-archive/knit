@@ -230,6 +230,38 @@ var _ = Describe("Repo", func() {
 		})
 	})
 
+	Describe("RemoveSubmodule", func() {
+
+		It("removes the submodule at the provided path", func() {
+			err := r.RemoveSubmodule("src/some/path")
+			Expect(err).NotTo(HaveOccurred())
+			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
+				patcher.Command{
+					Args: []string{"submodule", "deinit", "-f", "src/some/path"},
+					Dir:  repoPath,
+				},
+				patcher.Command{
+					Args: []string{"rm", "-f", "src/some/path"},
+					Dir:  repoPath,
+				},
+				patcher.Command{
+					Args: []string{"commit", "-m", "Knit removal of submodule 'src/some/path'", "--no-verify"},
+					Dir:  repoPath,
+				},
+			}))
+		})
+
+		Context("when an error occurs", func() {
+			Context("when the command fails", func() {
+				It("returns an error", func() {
+					runner.RunCall.Returns.Errors = []error{errors.New("meow")}
+					err := r.RemoveSubmodule("src/some/path")
+					Expect(err).To(MatchError("meow"))
+				})
+			})
+		})
+	})
+
 	Describe("BumpSubmodule", func() {
 		It("bumps the given submodule to the provided sha", func() {
 			err := r.BumpSubmodule("src/some/path", "a-sha")

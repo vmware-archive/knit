@@ -13,6 +13,7 @@ type Changeset struct {
 	Bumps              map[string]string
 	SubmodulePatches   map[string][]string
 	SubmoduleAdditions map[string]SubmoduleAddition
+	SubmoduleRemovals  []string
 }
 
 type patchSet interface {
@@ -49,6 +50,7 @@ func (p VersionsParser) GetCheckpoint() (Checkpoint, error) {
 			Bumps:              version.SubmoduleBumps,
 			SubmodulePatches:   version.SubmodulePatches,
 			SubmoduleAdditions: version.SubmoduleAdditions,
+			SubmoduleRemovals:  version.SubmoduleRemovals,
 		})
 	}
 

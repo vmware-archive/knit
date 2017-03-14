@@ -33,6 +33,8 @@ starting_versions:
         ref: fake-sha-3
         url: fake-url
         branch: fake-branch
+    "src/deleteme-sub":
+      remove: true
   hotfixes:
     "something.else":
       patches:
@@ -133,6 +135,7 @@ var _ = Describe("PatchSet", func() {
 							Branch: "fake-branch",
 						},
 					},
+					SubmoduleRemovals: []string{"src/deleteme-sub"},
 				},
 			}))
 		})
@@ -151,6 +154,7 @@ var _ = Describe("PatchSet", func() {
 						SubmoduleBumps:     map[string]string{},
 						SubmodulePatches:   map[string][]string{},
 						SubmoduleAdditions: map[string]patcher.SubmoduleAddition{},
+						SubmoduleRemovals:  []string{},
 					},
 				}))
 			})
@@ -195,6 +199,7 @@ var _ = Describe("PatchSet", func() {
 									Branch: "fake-branch",
 								},
 							},
+							SubmoduleRemovals: []string{"src/deleteme-sub"},
 						},
 					}))
 				})

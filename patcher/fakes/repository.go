@@ -37,6 +37,15 @@ type Repository struct {
 		}
 	}
 
+	RemoveSubmoduleCall struct {
+		Receives struct {
+			Paths []string
+		}
+		Returns struct {
+			Error error
+		}
+	}
+
 	BumpSubmoduleCall struct {
 		Receives struct {
 			Submodules map[string]string
@@ -96,6 +105,11 @@ func (r *Repository) AddSubmodule(patchPath, url, ref, branch string) error {
 	}
 
 	return r.AddSubmoduleCall.Returns.Error
+}
+
+func (r *Repository) RemoveSubmodule(path string) error {
+	r.RemoveSubmoduleCall.Receives.Paths = append(r.RemoveSubmoduleCall.Receives.Paths, path)
+	return r.RemoveSubmoduleCall.Returns.Error
 }
 
 func (r *Repository) BumpSubmodule(patchPath, sha string) error {

@@ -55,4 +55,9 @@ starting_versions:
       ref: "jas4374357afasdfkgasfkdga890989080989"
     "src/capi-release/src/cloud_controller_ng":
       ref: "57afasdfkgasfkddsjfghj888328748723874"
+- version: 3
+  ref: "v235"
+  submodules:
+    "path/to/another/submodule/in/release/repo":
+      remove: true
 ```

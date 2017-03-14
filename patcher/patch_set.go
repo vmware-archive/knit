@@ -24,6 +24,7 @@ type Submodule struct {
 	Ref     string
 	Patches []string
 	Add     SubmoduleAddition
+	Remove  bool
 }
 
 type SubmoduleAddition struct {
@@ -54,6 +55,7 @@ type Version struct {
 	SubmoduleBumps     map[string]string
 	SubmodulePatches   map[string][]string
 	SubmoduleAdditions map[string]SubmoduleAddition
+	SubmoduleRemovals  []string
 }
 
 func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
@@ -78,6 +80,7 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 			SubmoduleBumps:     map[string]string{},
 			SubmodulePatches:   map[string][]string{},
 			SubmoduleAdditions: map[string]SubmoduleAddition{},
+			SubmoduleRemovals:  []string{},
 		}
 
 		releaseDirName := fmt.Sprintf("%d.%d", majorVersion, minorVersion)
@@ -135,6 +138,10 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 				}
 
 				vers.SubmoduleAdditions[path] = submodule.Add
+			}
+
+			if submodule.Remove {
+				vers.SubmoduleRemovals = append(vers.SubmoduleRemovals, path)
 			}
 		}
 
