@@ -40,7 +40,7 @@ cf-release - name of the top-level component
 ```
 
 ## starting-versions.yml
-The starting versions file has a section for each patch version (even if there are no associated patches) and looks like this:
+The starting versions file has a section for each patch version and looks like this:
 ```
 ---
 starting_versions:
@@ -48,12 +48,15 @@ starting_versions:
   ref: "v235"
 - version: 1
   ref: "v235"
+  patches:
+  - "path/to/patch/in/pcf-patches/under/release-dir"
 - version: 2
   ref: "v235"
   submodules:
-    "src/uaa-release":
-      ref: "jas4374357afasdfkgasfkdga890989080989"
-    "src/capi-release/src/cloud_controller_ng":
+    "path/to/submodule/in/release/repo":
+      patches:
+      - "path/to/patch/in/pcf-patches/under/release-dir"
+    "path/to/another/submodule/in/release/repo":
       ref: "57afasdfkgasfkddsjfghj888328748723874"
 - version: 3
   ref: "v235"
