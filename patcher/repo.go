@@ -214,7 +214,7 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 			Dir:  pathToSubmodule,
 		},
 		Command{
-			Args: []string{"submodule", "foreach", "--recursive", "git submodule sync"},
+			Args: []string{"submodule", "sync"},
 			Dir:  pathToSubmodule,
 		},
 		Command{
