@@ -324,7 +324,7 @@ var _ = Describe("Repo", func() {
 					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
 				},
 				patcher.Command{
-					Args: []string{"submodule", "foreach", "--recursive", "git submodule sync"},
+					Args: []string{"submodule", "sync"},
 					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
 				},
 				patcher.Command{
