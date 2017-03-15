@@ -19,7 +19,7 @@ import (
 var _ = Describe("Apply Patches", func() {
 	Context("when everything is great", func() {
 		AfterEach(func() {
-			command := exec.Command("git", "checkout", "master")
+			command := exec.Command("git", "checkout", "HEAD")
 			command.Dir = cfReleaseRepo
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -88,7 +88,7 @@ var _ = Describe("Apply Patches", func() {
 
 	Context("when the version specified has no starting version", func() {
 		AfterEach(func() {
-			command := exec.Command("git", "checkout", "master")
+			command := exec.Command("git", "checkout", "HEAD")
 			command.Dir = cfReleaseRepo
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -124,7 +124,7 @@ var _ = Describe("Apply Patches", func() {
 
 	Context("when the version specified indicates a hotfix release", func() {
 		AfterEach(func() {
-			command := exec.Command("git", "checkout", "master")
+			command := exec.Command("git", "checkout", "HEAD")
 			command.Dir = cfReleaseRepo
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -175,7 +175,7 @@ var _ = Describe("Apply Patches", func() {
 
 	Context("when the version specified bypasses a hotfix release", func() {
 		AfterEach(func() {
-			command := exec.Command("git", "checkout", "master")
+			command := exec.Command("git", "checkout", "HEAD")
 			command.Dir = cfReleaseRepo
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -226,7 +226,7 @@ var _ = Describe("Apply Patches", func() {
 
 	Context("when the version specified adds a new submodule", func() {
 		AfterEach(func() {
-			command := exec.Command("git", "checkout", "master")
+			command := exec.Command("git", "checkout", "HEAD")
 			command.Dir = diegoReleaseRepo
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -281,7 +281,7 @@ var _ = Describe("Apply Patches", func() {
 
 	Context("when the version specified removes an old submodule", func() {
 		AfterEach(func() {
-			command := exec.Command("git", "checkout", "master")
+			command := exec.Command("git", "checkout", "HEAD")
 			command.Dir = cfReleaseRepo
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
@@ -332,7 +332,7 @@ var _ = Describe("Apply Patches", func() {
 			})
 
 			AfterEach(func() {
-				command := exec.Command("git", "checkout", "master")
+				command := exec.Command("git", "checkout", "HEAD")
 				command.Dir = cfReleaseRepo
 				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
