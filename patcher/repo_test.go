@@ -89,7 +89,7 @@ var _ = Describe("Repo", func() {
 					Dir:  repoPath,
 				},
 				patcher.Command{
-					Args: []string{"submodule", "sync", "--recursive"},
+					Args: []string{"submodule", "foreach", "--recursive", "git submodule sync"},
 					Dir:  repoPath,
 				},
 				patcher.Command{
@@ -152,7 +152,7 @@ var _ = Describe("Repo", func() {
 					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
-					Args: []string{"submodule", "sync", "--recursive"},
+					Args: []string{"submodule", "foreach", "--recursive", "git submodule sync"},
 					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
@@ -192,7 +192,7 @@ var _ = Describe("Repo", func() {
 						Dir:  filepath.Join(repoPath, "src", "some", "path"),
 					},
 					patcher.Command{
-						Args: []string{"submodule", "sync", "--recursive"},
+						Args: []string{"submodule", "foreach", "--recursive", "git submodule sync"},
 						Dir:  filepath.Join(repoPath, "src", "some", "path"),
 					},
 					patcher.Command{
@@ -231,7 +231,6 @@ var _ = Describe("Repo", func() {
 	})
 
 	Describe("RemoveSubmodule", func() {
-
 		It("removes the submodule at the provided path", func() {
 			err := r.RemoveSubmodule("src/some/path")
 			Expect(err).NotTo(HaveOccurred())
@@ -281,7 +280,7 @@ var _ = Describe("Repo", func() {
 					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
-					Args: []string{"submodule", "sync", "--recursive"},
+					Args: []string{"submodule", "foreach", "--recursive", "git submodule sync"},
 					Dir:  filepath.Join(repoPath, "src", "some", "path"),
 				},
 				patcher.Command{
@@ -325,7 +324,7 @@ var _ = Describe("Repo", func() {
 					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
 				},
 				patcher.Command{
-					Args: []string{"submodule", "sync", "--recursive"},
+					Args: []string{"submodule", "foreach", "--recursive", "git submodule sync"},
 					Dir:  filepath.Join(repoPath, "src/some/path", "src/some/other/path"),
 				},
 				patcher.Command{

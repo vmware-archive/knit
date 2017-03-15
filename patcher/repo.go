@@ -71,7 +71,7 @@ func (r Repo) Checkout(checkoutRef string) error {
 			Dir:  r.repo,
 		},
 		Command{
-			Args: []string{"submodule", "sync", "--recursive"},
+			Args: []string{"submodule", "foreach", "--recursive", "git submodule sync"},
 			Dir:  r.repo,
 		},
 		Command{
@@ -127,7 +127,7 @@ func (r Repo) AddSubmodule(path, url, ref, branch string) error {
 			Dir:  pathToSubmodule,
 		},
 		Command{
-			Args: []string{"submodule", "sync", "--recursive"},
+			Args: []string{"submodule", "foreach", "--recursive", "git submodule sync"},
 			Dir:  pathToSubmodule,
 		},
 		Command{
@@ -214,7 +214,7 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 			Dir:  pathToSubmodule,
 		},
 		Command{
-			Args: []string{"submodule", "sync", "--recursive"},
+			Args: []string{"submodule", "foreach", "--recursive", "git submodule sync"},
 			Dir:  pathToSubmodule,
 		},
 		Command{
