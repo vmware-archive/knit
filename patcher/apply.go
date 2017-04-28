@@ -7,7 +7,6 @@ type Apply struct {
 }
 
 type repository interface {
-	ConfigureCommitter() error
 	Checkout(checkoutRef string) error
 	CheckoutBranch(name string) error
 	ApplyPatch(patch string) error
@@ -24,12 +23,7 @@ func NewApply(repo repository) Apply {
 }
 
 func (a Apply) Checkpoint(checkpoint Checkpoint) error {
-	err := a.repo.ConfigureCommitter()
-	if err != nil {
-		return err
-	}
-
-	err = a.repo.Checkout(checkpoint.CheckoutRef)
+	err := a.repo.Checkout(checkpoint.CheckoutRef)
 	if err != nil {
 		return err
 	}

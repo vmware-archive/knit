@@ -56,13 +56,6 @@ var _ = Describe("Apply", func() {
 	})
 
 	Describe("Checkpoint", func() {
-		It("configures the git committer", func() {
-			err := apply.Checkpoint(checkpoint)
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(repo.ConfigureCommitterCall.Count).To(Equal(1))
-		})
-
 		It("checkouts the initial ref defined by the checkpoint", func() {
 			err := apply.Checkpoint(checkpoint)
 			Expect(err).NotTo(HaveOccurred())
@@ -123,22 +116,6 @@ var _ = Describe("Apply", func() {
 		})
 
 		Context("when an error occurs", func() {
-			Context("when configure committer fails", func() {
-				It("returns an error", func() {
-					repo.ConfigureCommitterCall.Returns.Error = errors.New("meow")
-
-					err := apply.Checkpoint(checkpoint)
-					Expect(err).To(MatchError("meow"))
-
-					Expect(repo.CheckoutCall.Receives.Ref).To(BeEmpty())
-					Expect(repo.CheckoutBranchCall.Receives.Name).To(Equal(""))
-					Expect(repo.ApplyPatchCall.Receives.Patches).To(BeEmpty())
-					Expect(repo.AddSubmoduleCall.Receives.Submodules).To(BeEmpty())
-					Expect(repo.BumpSubmoduleCall.Receives.Submodules).To(BeEmpty())
-					Expect(repo.PatchSubmoduleCall.Receives.Paths).To(BeEmpty())
-				})
-			})
-
 			Context("when checkout fails", func() {
 				It("returns an error", func() {
 					repo.CheckoutCall.Returns.Error = errors.New("meow")
