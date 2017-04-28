@@ -397,8 +397,13 @@ var _ = Describe("Repo", func() {
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
-					Args: []string{"am", "/full/submodule/some.patch"},
-					Dir:  filepath.Join(repoPath, "src", "different/path"),
+					Args: []string{
+						"-c", fmt.Sprintf("user.name=%s", user),
+						"-c", fmt.Sprintf("user.email=%s", email),
+						"am",
+						"/full/submodule/some.patch",
+					},
+					Dir: filepath.Join(repoPath, "src", "different/path"),
 				},
 				patcher.Command{
 					Args: []string{"add", "-A", "."},
@@ -436,8 +441,13 @@ var _ = Describe("Repo", func() {
 
 				Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 					patcher.Command{
-						Args: []string{"am", "/full/submodule/some.patch"},
-						Dir:  filepath.Join(repoPath, "src", "different/path"),
+						Args: []string{
+							"-c", fmt.Sprintf("user.name=%s", user),
+							"-c", fmt.Sprintf("user.email=%s", email),
+							"am",
+							"/full/submodule/some.patch",
+						},
+						Dir: filepath.Join(repoPath, "src", "different/path"),
 					},
 					patcher.Command{
 						Args: []string{"add", "-A", "."},

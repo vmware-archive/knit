@@ -268,8 +268,12 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 
 func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 	applyCommand := Command{
-		Args: []string{"am", fullPathToPatch},
-		Dir:  filepath.Join(r.repo, path),
+		Args: []string{
+			"-c", fmt.Sprintf("user.name=%s", r.committerName),
+			"-c", fmt.Sprintf("user.email=%s", r.committerEmail),
+			"am", fullPathToPatch,
+		},
+		Dir: filepath.Join(r.repo, path),
 	}
 
 	if err := r.runner.Run(applyCommand); err != nil {
