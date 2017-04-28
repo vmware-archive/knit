@@ -35,27 +35,6 @@ func NewRepo(commandRunner commandRunner, repo string, committerName, committerE
 	}
 }
 
-func (r Repo) ConfigureCommitter() error {
-	commands := []Command{
-		Command{
-			Args: []string{"config", "--global", "user.name", r.committerName},
-			Dir:  r.repo,
-		},
-		Command{
-			Args: []string{"config", "--global", "user.email", r.committerEmail},
-			Dir:  r.repo,
-		},
-	}
-
-	for _, command := range commands {
-		if err := r.runner.Run(command); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (r Repo) Checkout(checkoutRef string) error {
 	commands := []Command{
 		Command{
@@ -147,8 +126,14 @@ func (r Repo) AddSubmodule(path, url, ref, branch string) error {
 			Dir:  r.repo,
 		},
 		Command{
-			Args: []string{"commit", "-m", fmt.Sprintf("Knit addition of %s", path), "--no-verify"},
-			Dir:  r.repo,
+			Args: []string{
+				"-c", fmt.Sprintf("user.name=%s", r.committerName),
+				"-c", fmt.Sprintf("user.email=%s", r.committerEmail),
+				"commit",
+				"-m", fmt.Sprintf("Knit addition of %s", path),
+				"--no-verify",
+			},
+			Dir: r.repo,
 		},
 	}
 
@@ -175,8 +160,14 @@ func (r Repo) RemoveSubmodule(path string) error {
 			Dir:  r.repo,
 		},
 		Command{
-			Args: []string{"commit", "-m", fmt.Sprintf("Knit removal of submodule '%s'", path), "--no-verify"},
-			Dir:  r.repo,
+			Args: []string{
+				"-c", fmt.Sprintf("user.name=%s", r.committerName),
+				"-c", fmt.Sprintf("user.email=%s", r.committerEmail),
+				"commit",
+				"-m", fmt.Sprintf("Knit removal of submodule '%s'", path),
+				"--no-verify",
+			},
+			Dir: r.repo,
 		},
 	}
 
@@ -234,8 +225,14 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 			Dir:  pathToRepo,
 		},
 		Command{
-			Args: []string{"commit", "-m", fmt.Sprintf("Knit bump of %s", path), "--no-verify"},
-			Dir:  pathToRepo,
+			Args: []string{
+				"-c", fmt.Sprintf("user.name=%s", r.committerName),
+				"-c", fmt.Sprintf("user.email=%s", r.committerEmail),
+				"commit",
+				"-m", fmt.Sprintf("Knit bump of %s", path),
+				"--no-verify",
+			},
+			Dir: pathToRepo,
 		},
 	}
 
@@ -244,8 +241,14 @@ func (r Repo) BumpSubmodule(path, sha string) error {
 			Args: []string{"add", "-A", matches[1]},
 			Dir:  r.repo,
 		}, Command{
-			Args: []string{"commit", "-m", fmt.Sprintf("Knit bump of %s", matches[1]), "--no-verify"},
-			Dir:  r.repo,
+			Args: []string{
+				"-c", fmt.Sprintf("user.name=%s", r.committerName),
+				"-c", fmt.Sprintf("user.email=%s", r.committerEmail),
+				"commit",
+				"-m", fmt.Sprintf("Knit bump of %s", matches[1]),
+				"--no-verify",
+			},
+			Dir: r.repo,
 		})
 	}
 
@@ -284,8 +287,14 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 				Dir:  absoluteSubmodulePath,
 			},
 			Command{
-				Args: []string{"commit", "-m", fmt.Sprintf("Knit submodule patch of %s", submodulePath), "--no-verify"},
-				Dir:  absoluteSubmodulePath,
+				Args: []string{
+					"-c", fmt.Sprintf("user.name=%s", r.committerName),
+					"-c", fmt.Sprintf("user.email=%s", r.committerEmail),
+					"commit",
+					"-m", fmt.Sprintf("Knit submodule patch of %s", submodulePath),
+					"--no-verify",
+				},
+				Dir: absoluteSubmodulePath,
 			},
 		}
 
@@ -302,8 +311,14 @@ func (r Repo) PatchSubmodule(path, fullPathToPatch string) error {
 			Dir:  r.repo,
 		},
 		Command{
-			Args: []string{"commit", "-m", fmt.Sprintf("Knit patch of %s", path), "--no-verify"},
-			Dir:  r.repo,
+			Args: []string{
+				"-c", fmt.Sprintf("user.name=%s", r.committerName),
+				"-c", fmt.Sprintf("user.email=%s", r.committerEmail),
+				"commit",
+				"-m", fmt.Sprintf("Knit patch of %s", path),
+				"--no-verify",
+			},
+			Dir: r.repo,
 		},
 	}
 

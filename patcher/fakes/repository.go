@@ -3,13 +3,6 @@ package fakes
 import "github.com/pivotal-cf-experimental/knit/patcher"
 
 type Repository struct {
-	ConfigureCommitterCall struct {
-		Count   int
-		Returns struct {
-			Error error
-		}
-	}
-
 	CheckoutCall struct {
 		Receives struct {
 			Ref string
@@ -73,12 +66,6 @@ type Repository struct {
 			Error error
 		}
 	}
-}
-
-func (r *Repository) ConfigureCommitter() error {
-	r.ConfigureCommitterCall.Count++
-
-	return r.ConfigureCommitterCall.Returns.Error
 }
 
 func (r *Repository) Checkout(checkoutRef string) error {

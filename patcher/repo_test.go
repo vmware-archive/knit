@@ -16,9 +16,10 @@ import (
 
 var _ = Describe("Repo", func() {
 	var (
-		runner   *fakes.CommandRunner
-		repoPath string
-		r        patcher.Repo
+		runner      *fakes.CommandRunner
+		repoPath    string
+		r           patcher.Repo
+		user, email string
 	)
 
 	BeforeEach(func() {
@@ -33,41 +34,14 @@ var _ = Describe("Repo", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
-		r = patcher.NewRepo(runner, repoPath, "testbot", "foo@example.com")
+		user = "testbot"
+		email = "foo@example.com"
+		r = patcher.NewRepo(runner, repoPath, user, email)
 	})
 
 	AfterEach(func() {
 		err := os.RemoveAll(repoPath)
 		Expect(err).NotTo(HaveOccurred())
-	})
-
-	Describe("ConfigureCommitter", func() {
-		It("sets the git committer name and email", func() {
-			err := r.ConfigureCommitter()
-			Expect(err).NotTo(HaveOccurred())
-
-			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
-				patcher.Command{
-					Args: []string{"config", "--global", "user.name", "testbot"},
-					Dir:  repoPath,
-				},
-				patcher.Command{
-					Args: []string{"config", "--global", "user.email", "foo@example.com"},
-					Dir:  repoPath,
-				},
-			}))
-		})
-
-		Context("failure cases", func() {
-			Context("when a config command fails", func() {
-				It("returns an error", func() {
-					runner.RunCall.Returns.Errors = []error{nil, errors.New("some error")}
-					err := r.ConfigureCommitter()
-					Expect(runner.RunCall.Count).To(Equal(2))
-					Expect(err).To(MatchError("some error"))
-				})
-			})
-		})
 	})
 
 	Describe("Checkout", func() {
@@ -172,8 +146,14 @@ var _ = Describe("Repo", func() {
 					Dir:  repoPath,
 				},
 				patcher.Command{
-					Args: []string{"commit", "-m", "Knit addition of src/some/path", "--no-verify"},
-					Dir:  repoPath,
+					Args: []string{
+						"-c", fmt.Sprintf("user.name=%s", user),
+						"-c", fmt.Sprintf("user.email=%s", email),
+						"commit",
+						"-m", "Knit addition of src/some/path",
+						"--no-verify",
+					},
+					Dir: repoPath,
 				},
 			}))
 		})
@@ -212,8 +192,14 @@ var _ = Describe("Repo", func() {
 						Dir:  repoPath,
 					},
 					patcher.Command{
-						Args: []string{"commit", "-m", "Knit addition of src/some/path", "--no-verify"},
-						Dir:  repoPath,
+						Args: []string{
+							"-c", fmt.Sprintf("user.name=%s", user),
+							"-c", fmt.Sprintf("user.email=%s", email),
+							"commit",
+							"-m", "Knit addition of src/some/path",
+							"--no-verify",
+						},
+						Dir: repoPath,
 					},
 				}))
 			})
@@ -244,8 +230,14 @@ var _ = Describe("Repo", func() {
 					Dir:  repoPath,
 				},
 				patcher.Command{
-					Args: []string{"commit", "-m", "Knit removal of submodule 'src/some/path'", "--no-verify"},
-					Dir:  repoPath,
+					Args: []string{
+						"-c", fmt.Sprintf("user.name=%s", user),
+						"-c", fmt.Sprintf("user.email=%s", email),
+						"commit",
+						"-m", "Knit removal of submodule 'src/some/path'",
+						"--no-verify",
+					},
+					Dir: repoPath,
 				},
 			}))
 		})
@@ -300,8 +292,14 @@ var _ = Describe("Repo", func() {
 					Dir:  repoPath,
 				},
 				patcher.Command{
-					Args: []string{"commit", "-m", "Knit bump of src/some/path", "--no-verify"},
-					Dir:  repoPath,
+					Args: []string{
+						"-c", fmt.Sprintf("user.name=%s", user),
+						"-c", fmt.Sprintf("user.email=%s", email),
+						"commit",
+						"-m", "Knit bump of src/some/path",
+						"--no-verify",
+					},
+					Dir: repoPath,
 				},
 			}))
 		})
@@ -344,16 +342,28 @@ var _ = Describe("Repo", func() {
 					Dir:  filepath.Join(repoPath, "src/some/path"),
 				},
 				patcher.Command{
-					Args: []string{"commit", "-m", "Knit bump of src/some/other/path", "--no-verify"},
-					Dir:  filepath.Join(repoPath, "src/some/path"),
+					Args: []string{
+						"-c", fmt.Sprintf("user.name=%s", user),
+						"-c", fmt.Sprintf("user.email=%s", email),
+						"commit",
+						"-m", "Knit bump of src/some/other/path",
+						"--no-verify",
+					},
+					Dir: filepath.Join(repoPath, "src/some/path"),
 				},
 				patcher.Command{
 					Args: []string{"add", "-A", "src/some/path"},
 					Dir:  repoPath,
 				},
 				patcher.Command{
-					Args: []string{"commit", "-m", "Knit bump of src/some/path", "--no-verify"},
-					Dir:  repoPath,
+					Args: []string{
+						"-c", fmt.Sprintf("user.name=%s", user),
+						"-c", fmt.Sprintf("user.email=%s", email),
+						"commit",
+						"-m", "Knit bump of src/some/path",
+						"--no-verify",
+					},
+					Dir: repoPath,
 				},
 			}))
 		})
@@ -391,8 +401,14 @@ var _ = Describe("Repo", func() {
 					Dir:  repoPath,
 				},
 				patcher.Command{
-					Args: []string{"commit", "-m", "Knit patch of src/different/path", "--no-verify"},
-					Dir:  repoPath,
+					Args: []string{
+						"-c", fmt.Sprintf("user.name=%s", user),
+						"-c", fmt.Sprintf("user.email=%s", email),
+						"commit",
+						"-m", "Knit patch of src/different/path",
+						"--no-verify",
+					},
+					Dir: repoPath,
 				},
 			}))
 		})
@@ -424,16 +440,28 @@ var _ = Describe("Repo", func() {
 						Dir:  filepath.Join(repoPath, "src/some/crazy/submodule"),
 					},
 					patcher.Command{
-						Args: []string{"commit", "-m", "Knit submodule patch of src/some/crazy/submodule", "--no-verify"},
-						Dir:  filepath.Join(repoPath, "src/some/crazy/submodule"),
+						Args: []string{
+							"-c", fmt.Sprintf("user.name=%s", user),
+							"-c", fmt.Sprintf("user.email=%s", email),
+							"commit",
+							"-m", "Knit submodule patch of src/some/crazy/submodule",
+							"--no-verify",
+						},
+						Dir: filepath.Join(repoPath, "src/some/crazy/submodule"),
 					},
 					patcher.Command{
 						Args: []string{"add", "-A", "."},
 						Dir:  repoPath,
 					},
 					patcher.Command{
-						Args: []string{"commit", "-m", "Knit patch of src/different/path", "--no-verify"},
-						Dir:  repoPath,
+						Args: []string{
+							"-c", fmt.Sprintf("user.name=%s", user),
+							"-c", fmt.Sprintf("user.email=%s", email),
+							"commit",
+							"-m", "Knit patch of src/different/path",
+							"--no-verify",
+						},
+						Dir: repoPath,
 					},
 				}))
 			})
