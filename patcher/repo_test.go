@@ -95,8 +95,12 @@ var _ = Describe("Repo", func() {
 
 			Expect(runner.RunCall.Receives.Commands).To(Equal([]patcher.Command{
 				patcher.Command{
-					Args: []string{"am", "some-dir/something.patch"},
-					Dir:  repoPath,
+					Args: []string{
+						"-c", fmt.Sprintf("user.name=%s", user),
+						"-c", fmt.Sprintf("user.email=%s", email),
+						"am",
+						"some-dir/something.patch"},
+					Dir: repoPath,
 				},
 			}))
 		})

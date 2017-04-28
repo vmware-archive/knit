@@ -74,8 +74,13 @@ func (r Repo) Checkout(checkoutRef string) error {
 
 func (r Repo) ApplyPatch(patch string) error {
 	command := Command{
-		Args: []string{"am", patch},
-		Dir:  r.repo,
+		Args: []string{
+			"-c", fmt.Sprintf("user.name=%s", r.committerName),
+			"-c", fmt.Sprintf("user.email=%s", r.committerEmail),
+			"am",
+			patch,
+		},
+		Dir: r.repo,
 	}
 
 	err := r.runner.Run(command)
