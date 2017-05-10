@@ -36,7 +36,7 @@ cf-release - name of the top-level component
         │   └── src
         │       └── loggregator
         │           └── example.patch - a submodule level patch
-        └── starting-version.yml - lists starting version of each patch-level + submodule patch SHAs
+        └── starting-versions.yml - lists starting version of each patch-level + submodule patch SHAs
 ```
 
 ## starting-versions.yml
