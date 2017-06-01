@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -18,11 +19,12 @@ var buildVersion string
 
 func main() {
 	var (
-		releaseRepository string
-		patchesRepository string
-		version           string
-		quiet             bool
-		showBuildVersion  bool
+		releaseRepository    string
+		patchesRepository    string
+		version              string
+		resultingVersionFile string
+		quiet                bool
+		showBuildVersion     bool
 	)
 
 	flag.StringVar(&releaseRepository, "repository-to-patch", "", "")
@@ -30,6 +32,7 @@ func main() {
 	flag.StringVar(&version, "version", "", "")
 	flag.BoolVar(&quiet, "quiet", false, "")
 	flag.BoolVar(&showBuildVersion, "v", false, "")
+	flag.StringVar(&resultingVersionFile, "resulting-version-file", "", "file to write out a generated version of the repository you just knit")
 	flag.Parse()
 
 	if showBuildVersion {
@@ -82,6 +85,14 @@ func main() {
 	err = apply.Checkpoint(initialCheckpoint)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if resultingVersionFile != "" {
+		matches := regexp.MustCompile(`v(.*)`).FindStringSubmatch(initialCheckpoint.ResultingVersion)
+		err = ioutil.WriteFile(resultingVersionFile, []byte(matches[1]), 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
