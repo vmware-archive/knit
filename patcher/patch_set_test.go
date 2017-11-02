@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pivotal-cf/knit/patcher"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/pivotal-cf-experimental/knit/patcher"
 )
 
 const startingVersionsContent = `---

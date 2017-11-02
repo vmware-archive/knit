@@ -3,11 +3,11 @@ package patcher_test
 import (
 	"errors"
 
+	"github.com/pivotal-cf/knit/patcher"
+	"github.com/pivotal-cf/knit/patcher/fakes"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	"github.com/pivotal-cf-experimental/knit/patcher"
-	"github.com/pivotal-cf-experimental/knit/patcher/fakes"
 )
 
 var _ = Describe("VersionsParser", func() {

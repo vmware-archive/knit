@@ -20,7 +20,7 @@ var (
 
 var _ = BeforeSuite(func() {
 	var err error
-	patcher, err = gexec.Build("github.com/pivotal-cf-experimental/knit")
+	patcher, err = gexec.Build("github.com/pivotal-cf/knit")
 	Expect(err).NotTo(HaveOccurred())
 
 	cfReleaseRepo = os.Getenv("CF_RELEASE_DIR")

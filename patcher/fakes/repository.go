@@ -1,6 +1,6 @@
 package fakes
 
-import "github.com/pivotal-cf-experimental/knit/patcher"
+import "github.com/pivotal-cf/knit/patcher"
 
 type Repository struct {
 	CheckoutCall struct {

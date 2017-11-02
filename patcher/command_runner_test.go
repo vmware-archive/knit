@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/pivotal-cf-experimental/knit/patcher"
+	"github.com/pivotal-cf/knit/patcher"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

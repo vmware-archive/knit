@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pivotal-cf-experimental/knit/patcher"
+	"github.com/pivotal-cf/knit/patcher"
 )
 
 var buildVersion string
