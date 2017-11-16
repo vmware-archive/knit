@@ -17,21 +17,23 @@ import (
 )
 
 var _ = Describe("Apply Patches", func() {
+	BeforeEach(func() {
+		var err error
+		cfReleaseRepo, err = ioutil.TempDir("", "cf-release")
+		Expect(err).NotTo(HaveOccurred())
+		err = exec.Command("cp", "-r", fmt.Sprintf("%s/.", os.Getenv("CF_RELEASE_DIR")), cfReleaseRepo).Run()
+		Expect(err).NotTo(HaveOccurred())
+
+		diegoReleaseRepo, err = ioutil.TempDir("", "diego-release")
+		Expect(err).NotTo(HaveOccurred())
+		err = exec.Command("cp", "-r", fmt.Sprintf("%s/.", os.Getenv("DIEGO_RELEASE_DIR")), diegoReleaseRepo).Run()
+		Expect(err).NotTo(HaveOccurred())
+	})
+	AfterEach(func() {
+		os.RemoveAll(cfReleaseRepo)
+		os.RemoveAll(diegoReleaseRepo)
+	})
 	Context("when everything is great", func() {
-		AfterEach(func() {
-			command := exec.Command("git", "checkout", "-")
-			command.Dir = cfReleaseRepo
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-
-			command = exec.Command("git", "branch", "-D", "1.6.15")
-			command.Dir = cfReleaseRepo
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-		})
-
 		It("applies patches onto a clean repo", func() {
 			command := exec.Command(patcher,
 				"-repository-to-patch", cfReleaseRepo,
@@ -87,20 +89,6 @@ var _ = Describe("Apply Patches", func() {
 	})
 
 	Context("when the version specified has no starting version", func() {
-		AfterEach(func() {
-			command := exec.Command("git", "checkout", "-")
-			command.Dir = cfReleaseRepo
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-
-			command = exec.Command("git", "branch", "-D", "1.6.111222")
-			command.Dir = cfReleaseRepo
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-		})
-
 		It("works just fine", func() {
 			command := exec.Command(patcher,
 				"-repository-to-patch", cfReleaseRepo,
@@ -123,20 +111,6 @@ var _ = Describe("Apply Patches", func() {
 	})
 
 	Context("when the version specified indicates a hotfix release", func() {
-		AfterEach(func() {
-			command := exec.Command("git", "checkout", "-")
-			command.Dir = cfReleaseRepo
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-
-			command = exec.Command("git", "branch", "-D", "1.7.11+ipsec.uptime")
-			command.Dir = cfReleaseRepo
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-		})
-
 		It("applies the hotfix patches on top of the vanilla patches", func() {
 			command := exec.Command(patcher,
 				"-repository-to-patch", cfReleaseRepo,
@@ -174,20 +148,6 @@ var _ = Describe("Apply Patches", func() {
 	})
 
 	Context("when the version specified bypasses a hotfix release", func() {
-		AfterEach(func() {
-			command := exec.Command("git", "checkout", "-")
-			command.Dir = cfReleaseRepo
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-
-			command = exec.Command("git", "branch", "-D", "1.7.12")
-			command.Dir = cfReleaseRepo
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-		})
-
 		It("does not apply the hotfix patches from the previous release", func() {
 			command := exec.Command(patcher,
 				"-repository-to-patch", cfReleaseRepo,
@@ -225,20 +185,6 @@ var _ = Describe("Apply Patches", func() {
 	})
 
 	Context("when the version specified adds a new submodule", func() {
-		AfterEach(func() {
-			command := exec.Command("git", "checkout", "-")
-			command.Dir = diegoReleaseRepo
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-
-			command = exec.Command("git", "branch", "-D", "1.7.15")
-			command.Dir = diegoReleaseRepo
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-		})
-
 		It("adds the new submodule", func() {
 			command := exec.Command(patcher,
 				"-repository-to-patch", diegoReleaseRepo,
@@ -280,20 +226,6 @@ var _ = Describe("Apply Patches", func() {
 	})
 
 	Context("when the version specified removes an old submodule", func() {
-		AfterEach(func() {
-			command := exec.Command("git", "checkout", "-")
-			command.Dir = cfReleaseRepo
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-
-			command = exec.Command("git", "branch", "-D", "1.8.35")
-			command.Dir = cfReleaseRepo
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10s").Should(gexec.Exit(0))
-		})
-
 		It("removes the old submodule", func() {
 			command := exec.Command(patcher,
 				"-repository-to-patch", cfReleaseRepo,
@@ -325,26 +257,6 @@ var _ = Describe("Apply Patches", func() {
 				Eventually(session, "10s").Should(gexec.Exit(0))
 
 				command = exec.Command("git", "branch", "1.6.1")
-				command.Dir = cfReleaseRepo
-				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
-				Eventually(session, "10s").Should(gexec.Exit(0))
-			})
-
-			AfterEach(func() {
-				command := exec.Command("git", "checkout", "-")
-				command.Dir = cfReleaseRepo
-				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
-				Eventually(session, "10s").Should(gexec.Exit(0))
-
-				command = exec.Command("git", "branch", "-D", "1.6.1")
-				command.Dir = cfReleaseRepo
-				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
-				Eventually(session, "10s").Should(gexec.Exit(0))
-
-				command = exec.Command("git", "clean", "-ffd")
 				command.Dir = cfReleaseRepo
 				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
