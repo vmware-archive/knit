@@ -91,21 +91,21 @@ var _ = Describe("Apply Patches", func() {
 	Context("when the version specified has no starting version", func() {
 		It("works just fine", func() {
 			command := exec.Command(patcher,
-				"-repository-to-patch", cfReleaseRepo,
-				"-patch-repository", cfPatchesDir,
-				"-version", "1.6.111222")
+				"-repository-to-patch", diegoReleaseRepo,
+				"-patch-repository", diegoPatchesDir,
+				"-version", "1.9.111222")
 
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session, "5m").Should(gexec.Exit(0))
 
 			command = exec.Command("git", "status")
-			command.Dir = cfReleaseRepo
+			command.Dir = diegoReleaseRepo
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.6.111222"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.9.111222"))
 			Expect(string(session.Out.Contents())).To(ContainSubstring("nothing to commit"))
 		})
 	})
