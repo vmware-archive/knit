@@ -1,8 +1,10 @@
 package patcher
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -64,7 +66,12 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 		return nil, err
 	}
 
-	startingVersions, err := ps.parseStartingVersionsFile(majorVersion, minorVersion)
+	releaseDirName, err := ps.releaseDirName(majorVersion, minorVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	startingVersions, err := ps.parseStartingVersionsFile(releaseDirName)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +89,6 @@ func (ps PatchSet) VersionsToApplyFor(version string) ([]Version, error) {
 			SubmoduleAdditions: map[string]SubmoduleAddition{},
 			SubmoduleRemovals:  []string{},
 		}
-
-		releaseDirName := fmt.Sprintf("%d.%d", majorVersion, minorVersion)
 
 		if v.Version == patchVersion && hotfixVersion != "" {
 			if _, ok := v.Hotfixes[hotfixVersion]; ok {
@@ -189,10 +194,25 @@ func (ps PatchSet) parseVersion(version string) (int, int, int, string, error) {
 	return majorVersion, minorVersion, patchVersion, hotfixVersion, nil
 }
 
-func (ps PatchSet) parseStartingVersionsFile(majorVersion, minorVersion int) (StartingVersions, error) {
-	startingVersionsYAML, err := ioutil.ReadFile(filepath.Join(ps.path, fmt.Sprintf("%d.%d", majorVersion, minorVersion), "starting-versions.yml"))
+func (ps PatchSet) releaseDirName(majorVersion, minorVersion int) (string, error) {
+	path := filepath.Join(ps.path, fmt.Sprintf("%d.%d", majorVersion, minorVersion))
+	_, err := os.Stat(path)
+	if err == nil {
+		return fmt.Sprintf("%d.%d", majorVersion, minorVersion), nil
+	}
+
+	path = filepath.Join(ps.path, fmt.Sprintf("%d", majorVersion), fmt.Sprintf("%d", minorVersion))
+	_, err = os.Stat(path)
+	if err == nil {
+		return filepath.Join(fmt.Sprintf("%d", majorVersion), fmt.Sprintf("%d", minorVersion)), nil
+	}
+	return "", errors.New("please provide either major.minor or major/minor for directory structure")
+}
+
+func (ps PatchSet) parseStartingVersionsFile(releaseDirName string) (StartingVersions, error) {
+	startingVersionsYAML, err := ioutil.ReadFile(filepath.Join(ps.path, releaseDirName, "starting-versions.yml"))
 	if err != nil {
-		return StartingVersions{}, err
+		return StartingVersions{}, errors.New("please provide a starting-versions.yml file")
 	}
 
 	var startingVersions StartingVersions

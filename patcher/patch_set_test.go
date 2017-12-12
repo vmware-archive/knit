@@ -61,48 +61,47 @@ var _ = Describe("PatchSet", func() {
 		files                []string
 	)
 
-	BeforeEach(func() {
-		tmpDir, err := ioutil.TempDir("", "")
-		Expect(err).NotTo(HaveOccurred())
-
-		startingVersionsYAML = filepath.Join(tmpDir, "some-release", "1.9", "starting-versions.yml")
-		err = os.MkdirAll(filepath.Dir(startingVersionsYAML), 0755)
-		Expect(err).NotTo(HaveOccurred())
-
-		err = ioutil.WriteFile(startingVersionsYAML, []byte(startingVersionsContent), 0644)
-		Expect(err).NotTo(HaveOccurred())
-
-		patchesRepo = filepath.Join(tmpDir, "some-release")
-
-		err = os.MkdirAll(filepath.Join(patchesRepo, "1.9", "2", "src", "something"), 0755)
-		Expect(err).NotTo(HaveOccurred())
-
-		files = []string{
-			filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
-			filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
-			filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
-			filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
-			filepath.Join(patchesRepo, "1.9", "Top-88.patch"),
-			filepath.Join(patchesRepo, "1.9", "Sub-Magic.patch"),
-		}
-
-		for _, file := range files {
-			f, err := ioutil.TempFile(filepath.Dir(file), "")
+	Context("when the user provides the major and minor in seperate directories", func() {
+		BeforeEach(func() {
+			tmpDir, err := ioutil.TempDir("", "")
 			Expect(err).NotTo(HaveOccurred())
 
-			err = os.Rename(f.Name(), file)
+			startingVersionsYAML = filepath.Join(tmpDir, "some-release", "1", "9", "starting-versions.yml")
+			err = os.MkdirAll(filepath.Dir(startingVersionsYAML), 0755)
 			Expect(err).NotTo(HaveOccurred())
-		}
 
-		ps = patcher.NewPatchSet(patchesRepo)
-	})
+			err = ioutil.WriteFile(startingVersionsYAML, []byte(startingVersionsContent), 0644)
+			Expect(err).NotTo(HaveOccurred())
 
-	AfterEach(func() {
-		err := os.RemoveAll(patchesRepo)
-		Expect(err).NotTo(HaveOccurred())
-	})
+			patchesRepo = filepath.Join(tmpDir, "some-release")
 
-	Describe("VersionsToApplyFor", func() {
+			err = os.MkdirAll(filepath.Join(patchesRepo, "1", "9", "2", "src", "something"), 0755)
+			Expect(err).NotTo(HaveOccurred())
+
+			files = []string{
+				filepath.Join(patchesRepo, "1", "9", "Top-1.patch"),
+				filepath.Join(patchesRepo, "1", "9", "Top-2.patch"),
+				filepath.Join(patchesRepo, "1", "9", "Sub-1.patch"),
+				filepath.Join(patchesRepo, "1", "9", "Sub-2.patch"),
+				filepath.Join(patchesRepo, "1", "9", "Top-88.patch"),
+				filepath.Join(patchesRepo, "1", "9", "Sub-Magic.patch"),
+			}
+
+			for _, file := range files {
+				f, err := ioutil.TempFile(filepath.Dir(file), "")
+				Expect(err).NotTo(HaveOccurred())
+
+				err = os.Rename(f.Name(), file)
+				Expect(err).NotTo(HaveOccurred())
+			}
+
+			ps = patcher.NewPatchSet(patchesRepo)
+		})
+		AfterEach(func() {
+			err := os.RemoveAll(patchesRepo)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
 		It("returns the versions to apply based on the specified version", func() {
 			versions, err := ps.VersionsToApplyFor("1.9.2")
 			Expect(err).NotTo(HaveOccurred())
@@ -114,18 +113,18 @@ var _ = Describe("PatchSet", func() {
 					Patch: 2,
 					Ref:   "v124",
 					Patches: []string{
-						filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
-						filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
+						filepath.Join(patchesRepo, "1", "9", "Top-1.patch"),
+						filepath.Join(patchesRepo, "1", "9", "Top-2.patch"),
 					},
 					SubmoduleBumps: map[string]string{
 						"src/fake-sub-1": "fake-sha-1",
 					},
 					SubmodulePatches: map[string][]string{
 						"src/fake-sub-1": {
-							filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
+							filepath.Join(patchesRepo, "1", "9", "Sub-1.patch"),
 						},
 						"src/fake-sub-2": {
-							filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
+							filepath.Join(patchesRepo, "1", "9", "Sub-2.patch"),
 						},
 					},
 					SubmoduleAdditions: map[string]patcher.SubmoduleAddition{
@@ -140,122 +139,220 @@ var _ = Describe("PatchSet", func() {
 			}))
 		})
 
-		Context("when the specified version is not listed", func() {
-			It("returns a valid version list", func() {
-				versions, err := ps.VersionsToApplyFor("1.9.1")
+	})
+
+	Context("when the user provides major and minor together in directory structure", func() {
+		BeforeEach(func() {
+			tmpDir, err := ioutil.TempDir("", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			startingVersionsYAML = filepath.Join(tmpDir, "some-release", "1.9", "starting-versions.yml")
+			err = os.MkdirAll(filepath.Dir(startingVersionsYAML), 0755)
+			Expect(err).NotTo(HaveOccurred())
+
+			err = ioutil.WriteFile(startingVersionsYAML, []byte(startingVersionsContent), 0644)
+			Expect(err).NotTo(HaveOccurred())
+
+			patchesRepo = filepath.Join(tmpDir, "some-release")
+
+			err = os.MkdirAll(filepath.Join(patchesRepo, "1.9", "2", "src", "something"), 0755)
+			Expect(err).NotTo(HaveOccurred())
+
+			files = []string{
+				filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
+				filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
+				filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
+				filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
+				filepath.Join(patchesRepo, "1.9", "Top-88.patch"),
+				filepath.Join(patchesRepo, "1.9", "Sub-Magic.patch"),
+			}
+
+			for _, file := range files {
+				f, err := ioutil.TempFile(filepath.Dir(file), "")
+				Expect(err).NotTo(HaveOccurred())
+
+				err = os.Rename(f.Name(), file)
+				Expect(err).NotTo(HaveOccurred())
+			}
+
+			ps = patcher.NewPatchSet(patchesRepo)
+		})
+
+		AfterEach(func() {
+			err := os.RemoveAll(patchesRepo)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		Describe("VersionsToApplyFor", func() {
+			It("returns the versions to apply based on the specified version", func() {
+				versions, err := ps.VersionsToApplyFor("1.9.2")
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(versions).To(Equal([]patcher.Version{
 					{
-						Major:              1,
-						Minor:              9,
-						Patch:              0,
-						Ref:                "v122",
-						SubmoduleBumps:     map[string]string{},
-						SubmodulePatches:   map[string][]string{},
-						SubmoduleAdditions: map[string]patcher.SubmoduleAddition{},
-						SubmoduleRemovals:  []string{},
+						Major: 1,
+						Minor: 9,
+						Patch: 2,
+						Ref:   "v124",
+						Patches: []string{
+							filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
+							filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
+						},
+						SubmoduleBumps: map[string]string{
+							"src/fake-sub-1": "fake-sha-1",
+						},
+						SubmodulePatches: map[string][]string{
+							"src/fake-sub-1": {
+								filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
+							},
+							"src/fake-sub-2": {
+								filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
+							},
+						},
+						SubmoduleAdditions: map[string]patcher.SubmoduleAddition{
+							"src/fake-new-sub": patcher.SubmoduleAddition{
+								URL:    "fake-url",
+								Ref:    "fake-sha-3",
+								Branch: "fake-branch",
+							},
+						},
+						SubmoduleRemovals: []string{"src/deleteme-sub"},
 					},
 				}))
 			})
-		})
 
-		Context("when a hotfix version is requested", func() {
-			Context("when there are existing patches for the vanilla patch release", func() {
-				It("includes the hotfix patches in the response", func() {
-					versions, err := ps.VersionsToApplyFor("1.9.2+something.else")
+			Context("when the specified version is not listed", func() {
+				It("returns a valid version list", func() {
+					versions, err := ps.VersionsToApplyFor("1.9.1")
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(versions).To(Equal([]patcher.Version{
 						{
-							Major: 1,
-							Minor: 9,
-							Patch: 2,
-							Ref:   "v124",
-							Patches: []string{
-								filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
-								filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
-								filepath.Join(patchesRepo, "1.9", "Top-88.patch"),
-							},
-							SubmoduleBumps: map[string]string{
-								"src/fake-sub-1":     "fake-sha-1",
-								"src/magic-fake-sub": "magic-fake-sha-1",
-							},
-							SubmodulePatches: map[string][]string{
-								"src/fake-sub-1": {
-									filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
-								},
-								"src/fake-sub-2": {
-									filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
-								},
-								"src/magic-fake-sub": {
-									filepath.Join(patchesRepo, "1.9", "Sub-Magic.patch"),
-								},
-							},
-							SubmoduleAdditions: map[string]patcher.SubmoduleAddition{
-								"src/fake-new-sub": patcher.SubmoduleAddition{
-									URL:    "fake-url",
-									Ref:    "fake-sha-3",
-									Branch: "fake-branch",
-								},
-							},
-							SubmoduleRemovals: []string{"src/deleteme-sub"},
+							Major:              1,
+							Minor:              9,
+							Patch:              0,
+							Ref:                "v122",
+							SubmoduleBumps:     map[string]string{},
+							SubmodulePatches:   map[string][]string{},
+							SubmoduleAdditions: map[string]patcher.SubmoduleAddition{},
+							SubmoduleRemovals:  []string{},
 						},
 					}))
 				})
 			})
 
-			Context("when there are no existing patches for the vanilla patch release", func() {
-				It("includes the hotfix patches in the response", func() {
-					Expect(func() {
-						ps.VersionsToApplyFor("1.9.3+urgent")
-					}).NotTo(Panic())
-				})
-			})
-		})
+			Context("when a hotfix version is requested", func() {
+				Context("when there are existing patches for the vanilla patch release", func() {
+					It("includes the hotfix patches in the response", func() {
+						versions, err := ps.VersionsToApplyFor("1.9.2+something.else")
+						Expect(err).NotTo(HaveOccurred())
 
-		Context("when an error occurs", func() {
-			Context("when the starting-versions file does not exist", func() {
-				BeforeEach(func() {
-					ps = patcher.NewPatchSet("/some/broken/patch")
+						Expect(versions).To(Equal([]patcher.Version{
+							{
+								Major: 1,
+								Minor: 9,
+								Patch: 2,
+								Ref:   "v124",
+								Patches: []string{
+									filepath.Join(patchesRepo, "1.9", "Top-1.patch"),
+									filepath.Join(patchesRepo, "1.9", "Top-2.patch"),
+									filepath.Join(patchesRepo, "1.9", "Top-88.patch"),
+								},
+								SubmoduleBumps: map[string]string{
+									"src/fake-sub-1":     "fake-sha-1",
+									"src/magic-fake-sub": "magic-fake-sha-1",
+								},
+								SubmodulePatches: map[string][]string{
+									"src/fake-sub-1": {
+										filepath.Join(patchesRepo, "1.9", "Sub-1.patch"),
+									},
+									"src/fake-sub-2": {
+										filepath.Join(patchesRepo, "1.9", "Sub-2.patch"),
+									},
+									"src/magic-fake-sub": {
+										filepath.Join(patchesRepo, "1.9", "Sub-Magic.patch"),
+									},
+								},
+								SubmoduleAdditions: map[string]patcher.SubmoduleAddition{
+									"src/fake-new-sub": patcher.SubmoduleAddition{
+										URL:    "fake-url",
+										Ref:    "fake-sha-3",
+										Branch: "fake-branch",
+									},
+								},
+								SubmoduleRemovals: []string{"src/deleteme-sub"},
+							},
+						}))
+					})
 				})
 
-				It("returns an error", func() {
-					_, err := ps.VersionsToApplyFor("1.9.2")
-					Expect(err).To(MatchError(ContainSubstring("no such file or directory")))
-				})
-
-				Context("when the version can't be parsed", func() {
-					It("returns an error", func() {
-						_, err := ps.VersionsToApplyFor("%$#")
-						Expect(err).To(MatchError(ContainSubstring("invalid syntax")))
+				Context("when there are no existing patches for the vanilla patch release", func() {
+					It("includes the hotfix patches in the response", func() {
+						Expect(func() {
+							ps.VersionsToApplyFor("1.9.3+urgent")
+						}).NotTo(Panic())
 					})
 				})
 			})
 
-			Context("when the starting versions yaml cannot be parsed", func() {
-				BeforeEach(func() {
-					err := ioutil.WriteFile(startingVersionsYAML, []byte("%%%"), 0644)
-					Expect(err).NotTo(HaveOccurred())
+			Context("when an error occurs", func() {
+				Context("when the user correctly formats the directory but it has no starting-versions file", func() {
+					It("returns an error", func() {
+						tmpDir, err := ioutil.TempDir("", "")
+						Expect(err).NotTo(HaveOccurred())
+
+						patchesRepo = filepath.Join(tmpDir, "some-release")
+						ps = patcher.NewPatchSet(patchesRepo)
+
+						releaseVersionPath := filepath.Join(tmpDir, "some-release", "1.10")
+						err = os.MkdirAll(releaseVersionPath, 0755)
+						Expect(err).NotTo(HaveOccurred())
+
+						_, err = ps.VersionsToApplyFor("1.10.2")
+						Expect(err).To(MatchError(ContainSubstring("please provide a starting-versions.yml file")))
+					})
+				})
+				Context("when the user does not correctly format the directory", func() {
+					BeforeEach(func() {
+						ps = patcher.NewPatchSet("/some/broken/patch")
+					})
+
+					It("returns an error", func() {
+						_, err := ps.VersionsToApplyFor("1.9.2")
+						Expect(err).To(MatchError(ContainSubstring("please provide either major.minor or major/minor for directory structure")))
+					})
+
+					Context("when the version can't be parsed", func() {
+						It("returns an error", func() {
+							_, err := ps.VersionsToApplyFor("%$#")
+							Expect(err).To(MatchError(ContainSubstring("invalid syntax")))
+						})
+					})
 				})
 
-				It("returns an error", func() {
-					_, err := ps.VersionsToApplyFor("1.9.2")
-					Expect(err).To(MatchError("yaml: could not find expected directive name"))
-				})
-			})
+				Context("when the starting versions yaml cannot be parsed", func() {
+					BeforeEach(func() {
+						err := ioutil.WriteFile(startingVersionsYAML, []byte("%%%"), 0644)
+						Expect(err).NotTo(HaveOccurred())
+					})
 
-			Context("when the hotfix version does not exist", func() {
-				It("returns an error", func() {
-					_, err := ps.VersionsToApplyFor("1.9.2+does.not.exist")
-					Expect(err).To(MatchError(`Hotfix not found: "does.not.exist"`))
+					It("returns an error", func() {
+						_, err := ps.VersionsToApplyFor("1.9.2")
+						Expect(err).To(MatchError("yaml: could not find expected directive name"))
+					})
 				})
-			})
 
-			Context("when a new submodule is added without a ref", func() {
-				BeforeEach(func() {
-					err := ioutil.WriteFile(startingVersionsYAML, []byte(`
----					
+				Context("when the hotfix version does not exist", func() {
+					It("returns an error", func() {
+						_, err := ps.VersionsToApplyFor("1.9.2+does.not.exist")
+						Expect(err).To(MatchError(`Hotfix not found: "does.not.exist"`))
+					})
+				})
+
+				Context("when a new submodule is added without a ref", func() {
+					BeforeEach(func() {
+						err := ioutil.WriteFile(startingVersionsYAML, []byte(`
+---
 starting_versions:
 - version: 2
   ref: 'v124'
@@ -264,12 +361,13 @@ starting_versions:
       add:
         url: fake-url,
         branch: fake-branch`), 0644)
-					Expect(err).NotTo(HaveOccurred())
-				})
+						Expect(err).NotTo(HaveOccurred())
+					})
 
-				It("returns an error", func() {
-					_, err := ps.VersionsToApplyFor("1.9.2")
-					Expect(err).To(MatchError(`Missing ref for new submodule: "src/fake-new-sub"`))
+					It("returns an error", func() {
+						_, err := ps.VersionsToApplyFor("1.9.2")
+						Expect(err).To(MatchError(`Missing ref for new submodule: "src/fake-new-sub"`))
+					})
 				})
 			})
 		})
