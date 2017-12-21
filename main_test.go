@@ -20,12 +20,12 @@ var _ = Describe("Apply Patches", func() {
 	BeforeEach(func() {
 		cfReleaseRepo, err := ioutil.TempDir("", "cf-release")
 		Expect(err).NotTo(HaveOccurred())
-		output, err := exec.Command("cp", "-r", fmt.Sprintf("%s/.", os.Getenv("CF_RELEASE_DIR")), cfReleaseRepo).CombinedOutput()
+		output, err := exec.Command("cp", "-R", fmt.Sprintf("%s/.", os.Getenv("CF_RELEASE_DIR")), cfReleaseRepo).CombinedOutput()
 		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Error: %s", output))
 
 		diegoReleaseRepo, err = ioutil.TempDir("", "diego-release")
 		Expect(err).NotTo(HaveOccurred())
-		output, err = exec.Command("cp", "-r", fmt.Sprintf("%s/.", os.Getenv("DIEGO_RELEASE_DIR")), diegoReleaseRepo).CombinedOutput()
+		output, err = exec.Command("cp", "-R", fmt.Sprintf("%s/.", os.Getenv("DIEGO_RELEASE_DIR")), diegoReleaseRepo).CombinedOutput()
 		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Error: %s", output))
 	})
 
