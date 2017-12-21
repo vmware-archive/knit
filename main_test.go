@@ -18,21 +18,22 @@ import (
 
 var _ = Describe("Apply Patches", func() {
 	BeforeEach(func() {
-		var err error
-		cfReleaseRepo, err = ioutil.TempDir("", "cf-release")
+		cfReleaseRepo, err := ioutil.TempDir("", "cf-release")
 		Expect(err).NotTo(HaveOccurred())
-		err = exec.Command("cp", "-r", fmt.Sprintf("%s/.", os.Getenv("CF_RELEASE_DIR")), cfReleaseRepo).Run()
-		Expect(err).NotTo(HaveOccurred())
+		output, err := exec.Command("cp", "-r", fmt.Sprintf("%s/.", os.Getenv("CF_RELEASE_DIR")), cfReleaseRepo).CombinedOutput()
+		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Error: %s", output))
 
 		diegoReleaseRepo, err = ioutil.TempDir("", "diego-release")
 		Expect(err).NotTo(HaveOccurred())
-		err = exec.Command("cp", "-r", fmt.Sprintf("%s/.", os.Getenv("DIEGO_RELEASE_DIR")), diegoReleaseRepo).Run()
-		Expect(err).NotTo(HaveOccurred())
+		output, err = exec.Command("cp", "-r", fmt.Sprintf("%s/.", os.Getenv("DIEGO_RELEASE_DIR")), diegoReleaseRepo).CombinedOutput()
+		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Error: %s", output))
 	})
+
 	AfterEach(func() {
 		os.RemoveAll(cfReleaseRepo)
 		os.RemoveAll(diegoReleaseRepo)
 	})
+
 	Context("when everything is great", func() {
 		It("applies patches onto a clean repo", func() {
 			command := exec.Command(patcher,
