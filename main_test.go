@@ -34,59 +34,57 @@ var _ = Describe("Apply Patches", func() {
 		os.RemoveAll(diegoReleaseRepo)
 	})
 
-	Context("when everything is great", func() {
-		It("applies patches onto a clean repo", func() {
-			command := exec.Command(patcher,
-				"-repository-to-patch", cfReleaseRepo,
-				"-patch-repository", cfPatchesDir,
-				"-version", "1.6.15")
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10m").Should(gexec.Exit(0))
+	It("applies patches onto a clean repo", func() {
+		command := exec.Command(patcher,
+			"-repository-to-patch", cfReleaseRepo,
+			"-patch-repository", cfPatchesDir,
+			"-version", "1.6.15")
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).NotTo(HaveOccurred())
+		Eventually(session, "10m").Should(gexec.Exit(0))
 
-			Eventually(session.Out).Should(gbytes.Say("Submodule path"))
+		Eventually(session.Out).Should(gbytes.Say("Submodule path"))
 
-			command = exec.Command("git", "status")
-			command.Dir = cfReleaseRepo
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
+		command = exec.Command("git", "status")
+		command.Dir = cfReleaseRepo
+		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).NotTo(HaveOccurred())
 
-			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.6.15"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("nothing to commit"))
+		Eventually(session, "30s").Should(gexec.Exit(0))
+		Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.6.15"))
+		Expect(string(session.Out.Contents())).To(ContainSubstring("nothing to commit"))
 
-			command = exec.Command("git", "log", "--format=%s", "-n", "8")
-			command.Dir = cfReleaseRepo
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
+		command = exec.Command("git", "log", "--format=%s", "-n", "8")
+		command.Dir = cfReleaseRepo
+		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).NotTo(HaveOccurred())
 
-			Eventually(session).Should(gexec.Exit(0))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/uaa"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/etcd-release"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/consul-release"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("add golang 1.5.3 to main blobs.yml, needed by new consul release"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/uaa"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/uaa"))
-		})
+		Eventually(session).Should(gexec.Exit(0))
+		Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/uaa"))
+		Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/etcd-release"))
+		Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/consul-release"))
+		Expect(string(session.Out.Contents())).To(ContainSubstring("add golang 1.5.3 to main blobs.yml, needed by new consul release"))
+		Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/uaa"))
+		Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/uaa"))
+	})
 
-		It("does not print any logs when --quiet flag is provided", func() {
-			command := exec.Command(patcher,
-				"-repository-to-patch", cfReleaseRepo,
-				"-patch-repository", cfPatchesDir,
-				"-quiet",
-				"-version", "1.6.15")
-			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session, "10m").Should(gexec.Exit(0))
+	It("does not print any logs when --quiet flag is provided", func() {
+		command := exec.Command(patcher,
+			"-repository-to-patch", cfReleaseRepo,
+			"-patch-repository", cfPatchesDir,
+			"-quiet",
+			"-version", "1.6.15")
+		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).NotTo(HaveOccurred())
+		Eventually(session, "10m").Should(gexec.Exit(0))
 
-			Eventually(session).Should(gexec.Exit(0))
-			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/uaa`))
-			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/etcd-release`))
-			Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/consul-release`))
-			Expect(session.Out).NotTo(gbytes.Say(`add golang 1\.5\.3 to main blobs\.yml, needed by new consul release`))
-			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/uaa`))
-			Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/uaa`))
-		})
+		Eventually(session).Should(gexec.Exit(0))
+		Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/uaa`))
+		Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/etcd-release`))
+		Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/consul-release`))
+		Expect(session.Out).NotTo(gbytes.Say(`add golang 1\.5\.3 to main blobs\.yml, needed by new consul release`))
+		Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/uaa`))
+		Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/uaa`))
 	})
 
 	Context("when the version specified has no starting version", func() {
