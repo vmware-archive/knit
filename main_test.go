@@ -17,269 +17,241 @@ import (
 )
 
 var _ = Describe("Apply Patches", func() {
-	BeforeEach(func() {
-		cfReleaseRepo, err := ioutil.TempDir("", "cf-release")
-		Expect(err).NotTo(HaveOccurred())
-		output, err := exec.Command("cp", "-R", fmt.Sprintf("%s/.", os.Getenv("CF_RELEASE_DIR")), cfReleaseRepo).CombinedOutput()
-		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Error: %s", output))
+	var (
+		repoToPatch string
+		patchesDir  string
+	)
 
-		diegoReleaseRepo, err = ioutil.TempDir("", "diego-release")
+	BeforeEach(func() {
+		var err error
+		patchesDir, err = ioutil.TempDir("", "patch-dir")
 		Expect(err).NotTo(HaveOccurred())
-		output, err = exec.Command("cp", "-R", fmt.Sprintf("%s/.", os.Getenv("DIEGO_RELEASE_DIR")), diegoReleaseRepo).CombinedOutput()
-		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Error: %s", output))
+
+		err = os.Mkdir(filepath.Join(patchesDir, "1.2"), os.ModePerm)
+		Expect(err).NotTo(HaveOccurred())
+
+		repoToPatch, err = ioutil.TempDir("", "repo-to-patch")
+		Expect(err).NotTo(HaveOccurred())
+
+		initGitRepo(repoToPatch)
+
+		createPatch(repoToPatch, patchesDir)
 	})
 
 	AfterEach(func() {
-		os.RemoveAll(cfReleaseRepo)
-		os.RemoveAll(diegoReleaseRepo)
+		os.RemoveAll(repoToPatch)
+		os.RemoveAll(patchesDir)
 	})
 
-	It("applies patches onto a clean repo", func() {
-		command := exec.Command(patcher,
-			"-repository-to-patch", cfReleaseRepo,
-			"-patch-repository", cfPatchesDir,
-			"-version", "1.6.15")
+	It("applies a single patch to a clean repo", func() {
+		command := exec.Command(pathToKnit,
+			"-repository-to-patch", repoToPatch,
+			"-patch-repository", patchesDir,
+			"-version", "1.2.1")
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
 		Eventually(session, "10m").Should(gexec.Exit(0))
 
-		Eventually(session.Out).Should(gbytes.Say("Submodule path"))
+		Eventually(session.Out).Should(gbytes.Say("Applying: a change to the file"))
 
 		command = exec.Command("git", "status")
-		command.Dir = cfReleaseRepo
+		command.Dir = repoToPatch
 		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
 
 		Eventually(session, "30s").Should(gexec.Exit(0))
-		Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.6.15"))
+		Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.2.1"))
 		Expect(string(session.Out.Contents())).To(ContainSubstring("nothing to commit"))
 
 		command = exec.Command("git", "log", "--format=%s", "-n", "8")
-		command.Dir = cfReleaseRepo
+		command.Dir = repoToPatch
 		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
 
 		Eventually(session).Should(gexec.Exit(0))
-		Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/uaa"))
-		Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/etcd-release"))
-		Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/consul-release"))
-		Expect(string(session.Out.Contents())).To(ContainSubstring("add golang 1.5.3 to main blobs.yml, needed by new consul release"))
-		Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/uaa"))
-		Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/uaa"))
+		Expect(string(session.Out.Contents())).To(ContainSubstring("a change to the file"))
+		Expect(string(session.Out.Contents())).NotTo(ContainSubstring("a hotfix patch"))
 	})
 
 	It("does not print any logs when --quiet flag is provided", func() {
-		command := exec.Command(patcher,
-			"-repository-to-patch", cfReleaseRepo,
-			"-patch-repository", cfPatchesDir,
+		command := exec.Command(pathToKnit,
+			"-repository-to-patch", repoToPatch,
+			"-patch-repository", patchesDir,
 			"-quiet",
-			"-version", "1.6.15")
+			"-version", "1.2.1")
 		session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
 		Eventually(session, "10m").Should(gexec.Exit(0))
 
 		Eventually(session).Should(gexec.Exit(0))
-		Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/uaa`))
-		Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/etcd-release`))
-		Expect(session.Out).NotTo(gbytes.Say(`Knit bump of src/consul-release`))
-		Expect(session.Out).NotTo(gbytes.Say(`add golang 1\.5\.3 to main blobs\.yml, needed by new consul release`))
-		Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/uaa`))
-		Expect(session.Out).NotTo(gbytes.Say(`Knit patch of src/uaa`))
+		Expect(session.Out).NotTo(gbytes.Say("a change to the file"))
 	})
 
 	Context("when the version specified has no starting version", func() {
 		It("works just fine", func() {
-			command := exec.Command(patcher,
-				"-repository-to-patch", diegoReleaseRepo,
-				"-patch-repository", diegoPatchesDir,
-				"-version", "1.9.111222")
+			command := exec.Command(pathToKnit,
+				"-repository-to-patch", repoToPatch,
+				"-patch-repository", patchesDir,
+				"-version", "1.2.111222")
 
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session, "5m").Should(gexec.Exit(0))
 
 			command = exec.Command("git", "status")
-			command.Dir = diegoReleaseRepo
+			command.Dir = repoToPatch
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.9.111222"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.2.111222"))
 			Expect(string(session.Out.Contents())).To(ContainSubstring("nothing to commit"))
 		})
 	})
 
 	Context("when the version specified indicates a hotfix release", func() {
 		It("applies the hotfix patches on top of the vanilla patches", func() {
-			command := exec.Command(patcher,
-				"-repository-to-patch", cfReleaseRepo,
-				"-patch-repository", cfPatchesDir,
-				"-version", "1.7.11+ipsec.uptime")
+			command := exec.Command(pathToKnit,
+				"-repository-to-patch", repoToPatch,
+				"-patch-repository", patchesDir,
+				"-version", "1.2.1+hot.fix")
 
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session, "5m").Should(gexec.Exit(0))
 
 			command = exec.Command("git", "status")
-			command.Dir = cfReleaseRepo
+			command.Dir = repoToPatch
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.7.11+ipsec.uptime"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.2.1+hot.fix"))
 			Expect(string(session.Out.Contents())).To(ContainSubstring("nothing to commit"))
 
 			command = exec.Command("git", "log", "--format=%s", "-n", "8")
-			command.Dir = cfReleaseRepo
+			command.Dir = repoToPatch
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session).Should(gexec.Exit(0))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/github.com/cloudfoundry/gorouter"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/github.com/cloudfoundry/gorouter"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/github.com/cloudfoundry-incubator/route-registrar"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release/src/cloud_controller_ng"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Update nginx to 1.11.1"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/loggregator"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/loggregator"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("a change to the file"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("a hotfix patch"))
 		})
 	})
 
 	Context("when the version specified bypasses a hotfix release", func() {
 		It("does not apply the hotfix patches from the previous release", func() {
-			command := exec.Command(patcher,
-				"-repository-to-patch", cfReleaseRepo,
-				"-patch-repository", cfPatchesDir,
-				"-version", "1.7.12")
+			command := exec.Command(pathToKnit,
+				"-repository-to-patch", repoToPatch,
+				"-patch-repository", patchesDir,
+				"-version", "1.2.1")
 
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session, "5m").Should(gexec.Exit(0))
 
 			command = exec.Command("git", "status")
-			command.Dir = cfReleaseRepo
+			command.Dir = repoToPatch
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.7.12"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("On branch 1.2.1"))
 			Expect(string(session.Out.Contents())).To(ContainSubstring("nothing to commit"))
 
 			command = exec.Command("git", "log", "--format=%s", "-n", "8")
-			command.Dir = cfReleaseRepo
+			command.Dir = repoToPatch
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session).Should(gexec.Exit(0))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release/src/cloud_controller_ng"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release/src/cloud_controller_ng"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit bump of src/consul-release"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Bump src/consul-release"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/github.com/cloudfoundry/gorouter"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release/src/cloud_controller_ng"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit patch of src/capi-release"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Update nginx to 1.11.1"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("a change to the file"))
+			Expect(string(session.Out.Contents())).ToNot(ContainSubstring("a hotfix patch"))
 		})
 	})
 
 	Context("when the version specified adds a new submodule", func() {
 		It("adds the new submodule", func() {
-			command := exec.Command(patcher,
-				"-repository-to-patch", diegoReleaseRepo,
-				"-patch-repository", diegoPatchesDir,
-				"-version", "1.7.15")
+			command := exec.Command(pathToKnit,
+				"-repository-to-patch", repoToPatch,
+				"-patch-repository", patchesDir,
+				"-version", "1.2.2")
 
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session, "5m").Should(gexec.Exit(0))
 
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit addition of src/github.com/nats-io/nats"))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit addition of src/github.com/nats-io/nuid"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Knit addition of " + filepath.Join("path", "to", "kiln")))
 
-			gitModulesContents, err := ioutil.ReadFile(path.Join(diegoReleaseRepo, ".gitmodules"))
+			gitModulesContents, err := ioutil.ReadFile(filepath.Join(repoToPatch, ".gitmodules"))
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(string(gitModulesContents)).To(ContainSubstring("src/github.com/nats-io/nats"))
-			Expect(string(gitModulesContents)).To(ContainSubstring("src/github.com/nats-io/nuid"))
+			Expect(string(gitModulesContents)).To(ContainSubstring(filepath.Join("path", "to", "kiln")))
 
-			Expect(path.Join(diegoReleaseRepo, "src/github.com/nats-io/nats")).To(BeADirectory())
-			Expect(path.Join(diegoReleaseRepo, "src/github.com/nats-io/nuid")).To(BeADirectory())
+			Expect(path.Join(repoToPatch, filepath.Join("path", "to", "kiln"))).To(BeADirectory())
 
 			command = exec.Command("git", "rev-parse", "HEAD")
-			command.Dir = path.Join(diegoReleaseRepo, "src/github.com/nats-io/nats")
+			command.Dir = filepath.Join(repoToPatch, "path", "to", "kiln")
 			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 
 			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("c0ad3f079763c06c3ce94ad12fa3f17e78966d99"))
-
-			command = exec.Command("git", "rev-parse", "HEAD")
-			command.Dir = path.Join(diegoReleaseRepo, "src/github.com/nats-io/nuid")
-			session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-
-			Eventually(session, "30s").Should(gexec.Exit(0))
-			Expect(string(session.Out.Contents())).To(ContainSubstring("a5152d67cf63cbfb5d992a395458722a45194715"))
+			Expect(string(session.Out.Contents())).To(ContainSubstring("7c018a3cd508e0b5541014362b353cde32d5c2a7"))
 		})
 	})
 
 	Context("when the version specified removes an old submodule", func() {
 		It("removes the old submodule", func() {
-			command := exec.Command(patcher,
-				"-repository-to-patch", cfReleaseRepo,
-				"-patch-repository", cfPatchesDir,
-				"-version", "1.8.35")
+			command := exec.Command(pathToKnit,
+				"-repository-to-patch", repoToPatch,
+				"-patch-repository", patchesDir,
+				"-version", "1.2.3")
 
 			session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session, "10m").Should(gexec.Exit(0))
 
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Submodule 'src/buildpacks' (https://github.com/cloudfoundry/buildpack-releases) unregistered for path 'src/buildpacks'"))
+			expectedStdout := "Submodule '" + filepath.Join("path", "to", "kiln") + "' (https://github.com/pivotal-cf/kiln.git) unregistered for path '" + filepath.Join("path", "to", "kiln") + "'"
+			Expect(string(session.Out.Contents())).To(ContainSubstring(expectedStdout))
 
-			gitModulesContents, err := ioutil.ReadFile(path.Join(cfReleaseRepo, ".gitmodules"))
+			gitModulesContents, err := ioutil.ReadFile(path.Join(repoToPatch, ".gitmodules"))
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(string(gitModulesContents)).NotTo(ContainSubstring("src/buildpacks"))
+			Expect(string(gitModulesContents)).NotTo(ContainSubstring(filepath.Join("path", "to", "kiln")))
 
-			Expect(path.Join(cfReleaseRepo, "src/buildpacks")).NotTo(BeADirectory())
+			Expect(filepath.Join(repoToPatch, "path", "to", "kiln")).NotTo(BeADirectory())
 		})
 	})
 
 	Context("error cases", func() {
 		Context("version branch already exists", func() {
 			BeforeEach(func() {
-				command := exec.Command("git", "checkout", "v222")
-				command.Dir = cfReleaseRepo
+				command := exec.Command("git", "branch", "1.2.1")
+				command.Dir = repoToPatch
 				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-				Expect(err).NotTo(HaveOccurred())
-				Eventually(session, "10s").Should(gexec.Exit(0))
-
-				command = exec.Command("git", "branch", "1.6.1")
-				command.Dir = cfReleaseRepo
-				session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(session, "10s").Should(gexec.Exit(0))
 			})
 
 			It("returns an error", func() {
-				command := exec.Command(patcher,
-					"-repository-to-patch", cfReleaseRepo,
-					"-patch-repository", cfPatchesDir,
-					"-version", "1.6.1")
+				command := exec.Command(pathToKnit,
+					"-repository-to-patch", repoToPatch,
+					"-patch-repository", patchesDir,
+					"-version", "1.2.1")
 
 				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(session, "5m").Should(gexec.Exit(1))
 
-				Eventually(session.Err).Should(gbytes.Say(`Branch "1.6.1" already exists. Please delete it before trying again`))
+				Eventually(session.Err).Should(gbytes.Say(`Branch "1.2.1" already exists. Please delete it before trying again`))
 			})
 		})
 
 		Context("when flags are not set", func() {
 			DescribeTable("missing flags",
 				func(version, release, patch, errorString string) {
-					command := exec.Command(patcher,
+					command := exec.Command(pathToKnit,
 						"-repository-to-patch", release,
 						"-patch-repository", patch,
 						"-version", version)
@@ -308,9 +280,9 @@ var _ = Describe("Apply Patches", func() {
 			})
 
 			It("exists with exit status 1", func() {
-				command := exec.Command(patcher,
-					"-repository-to-patch", cfReleaseRepo,
-					"-patch-repository", cfPatchesDir,
+				command := exec.Command(pathToKnit,
+					"-repository-to-patch", repoToPatch,
+					"-patch-repository", patchesDir,
 					"-version", "1.6.15")
 				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
@@ -354,9 +326,9 @@ var _ = Describe("Apply Patches", func() {
 			})
 
 			It("exists with exit status 1", func() {
-				command := exec.Command(patcher,
-					"-repository-to-patch", cfReleaseRepo,
-					"-patch-repository", cfPatchesDir,
+				command := exec.Command(pathToKnit,
+					"-repository-to-patch", repoToPatch,
+					"-patch-repository", patchesDir,
 					"-version", "1.6.15")
 				session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
