@@ -18,7 +18,8 @@ import (
 
 var _ = Describe("Apply Patches", func() {
 	BeforeEach(func() {
-		cfReleaseRepo, err := ioutil.TempDir("", "cf-release")
+		var err error
+		cfReleaseRepo, err = ioutil.TempDir("", "cf-release")
 		Expect(err).NotTo(HaveOccurred())
 		output, err := exec.Command("cp", "-R", fmt.Sprintf("%s/.", os.Getenv("CF_RELEASE_DIR")), cfReleaseRepo).CombinedOutput()
 		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("Error: %s", output))
