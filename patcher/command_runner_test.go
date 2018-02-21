@@ -68,7 +68,7 @@ var _ = Describe("CommandRunner", func() {
 				},
 			})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(runner.Stderr).To(ContainSubstring("GET / HTTP/1.1"))
+			Expect(runner.Stderr).To(ContainSubstring("GET / HTTP/"))
 		})
 
 		Context("failure cases", func() {
