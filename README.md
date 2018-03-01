@@ -58,6 +58,10 @@ starting_versions:
       - "path/to/patch/in/pcf-patches/under/minor-release-dir"
     "path/to/another/submodule/from/root/of/original/repo":
       ref: "57afasdfkgasfkddsjfghj888328748723874"
+    "path/to/newly/added/submodule/from/root/of/original/repo":
+      add:
+        url: https://example.com/someuser/repo.git
+        ref: 7c013a3cd565e0b5541014338b353cde45d5c2a7
 - version: 3
   ref: "v235"
   submodules:
